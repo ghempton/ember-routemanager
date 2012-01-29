@@ -1,0 +1,13 @@
+{
+  "name": "ember-routemanager-project",
+  "bpm": "1.0.0",
+  "dependencies": {
+    "ember-routemanager": ">= 0"
+  },
+  
+  "bpm:build": {
+    "bpm_libs.js": {
+      "minifier": "uglify-js"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "ember-routemanager",
+  "summary": "Short package description",
+  "description": "Ember RouteManager is a library aimed at implementing browser routing support through a state manager.",
+  "homepage": "https://github.com/ghempton/ember-routemanager",
+  "author": "Gordon L. Hempton and contributors",
+  "version": "0.1.0.pre",
+
+  "directories": {
+    "lib": "lib"
+  },
+  
+  "dependencies": {
+    "spade": "~> 1.0",
+    "ember-runtime": ">= 0"
+  },
+  "dependencies:development": {
+    "spade-qunit": "~> 1.0.0"
+  },
+  "bpm:build": {
+    "bpm_libs.js": {
+      "files": ["lib"],
+      "modes": "*"
+    },
+    "ember-data/bpm_tests.js": {
+      "files": ["tests"],
+      "modes": ["debug"]
+    }
+  }
+}

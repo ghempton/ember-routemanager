@@ -1,0 +1,1 @@
+require("ember-routemanager/core");

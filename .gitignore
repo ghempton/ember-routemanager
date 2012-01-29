@@ -1,0 +1,8 @@
+bin/
+.bundle
+tmp/
+tests/source/
+dist/
+
+.DS_Store
+.project
