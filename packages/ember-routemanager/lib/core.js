@@ -398,7 +398,8 @@ Ember.RouteManager = Ember.StateManager.extend(
         }
 
         this.popState();
-        jQuery(window).bind('popstate', jQuery.proxy(this.popState, this));
+        this.popState = jQuery.proxy(this.popState, this)
+        jQuery(window).bind('popstate', this.popState);
 
       } else {
         this.usesHistory = false;
@@ -415,61 +416,38 @@ Ember.RouteManager = Ember.StateManager.extend(
 
         if (supportsHashChange) {
           this.hashChange();
-          jQuery(window).bind('hashchange', jQuery.proxy(this.hashChange, this));
+          this.hashChange = jQuery.proxy(this.hashChange, this);
+          jQuery(window).bind('hashchange', this.hashChange);
 
         } else {
           // we don't use a Ember.Timer because we don't want
           // a run loop to be triggered at each ping
           var invokeHashChange = function() {
             this.hashChange();
-            setTimeout(invokeHashChange, 100);
+            this._timerId = setTimeout(invokeHashChange, 100);
           };
           invokeHashChange();
         }
       }
     }
   },
-
-  /**
-    Adds a route handler. Routes have the following format:
-
-     - 'users/show/5' is a static route and only matches this exact string,
-     - ':action/:controller/:id' is a dynamic route and the handler will be
-        called with the 'action', 'controller' and 'id' parameters passed in a
-        hash,
-     - '*url' is a wildcard route, it matches the whole route and the handler
-        will be called with the 'url' parameter passed in a hash.
-
-    Route types can be combined, the following are valid routes:
-
-     - 'users/:action/:id'
-     - ':controller/show/:id'
-     - ':controller/ *url' (ignore the space, because of jslint)
-
-    @param {String} route the route to be registered
-    @param {Object} target the object on which the method will be called, or
-      directly the function to be called to handle the route
-    @param {Function} method the method to be called on target to handle the
-      route, can be a function or a string
-  */
-  add: function(route, target, method) {
-    if (!this._didSetup) {
-      Ember.run.once(this, 'ping');
-    }
-
-    if (method === undefined && Ember.typeOf(target) === 'function') {
-      method = target;
-      target = null;
-    } else if (Ember.typeOf(method) === 'string') {
-      method = target[method];
-    }
-
-    if (!this._firstRoute) this._firstRoute = Route.create();
-    this._firstRoute.add(route.split('/'), target, method);
-
-    return this;
-  },
   
+  destroy: function() {
+    this._super();
+    
+    if(this._didSetup) {
+      if (get(this, 'wantsHistory') && supportsHistory) {
+        jQuery(window).unbind('popstate', this.popState);
+      } else {
+        if (supportsHashChange) {
+          jQuery(window).unbind('hashchange', this.hashChange);
+        } else {
+          clearTimeout(_timerId);
+        }
+      }
+    }
+  },
+
   init: function() {
     this._super();
     if (!this._didSetup) {
@@ -479,7 +457,7 @@ Ember.RouteManager = Ember.StateManager.extend(
     
     var self = this;
     var createRoutes = function(state, names) { 
-      var route = state.getPath('parentState.route') || self._firstRoute;
+      var route = state.getPath('parentState._route') || self._firstRoute;
       var path = state.get('path');
       
       if(path) {
@@ -487,8 +465,9 @@ Ember.RouteManager = Ember.StateManager.extend(
           self.set('params', params);
           self.goToState(names.join('.'));
         });
+        route.set('state', state);
       }
-      state.set('route', route);
+      state.set('_route', route);
       
       var states = state.get('states');
       for(var name in states) {
