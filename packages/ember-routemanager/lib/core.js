@@ -410,16 +410,22 @@ Ember.RouteManager = Ember.StateManager.extend(
     parts = Ember.copy(parts);
     params = Ember.copy(params);
     var path = get(state, 'path');
-    var partDefinitions = path.split('/');
-      
-    for(var i = 0; i < partDefinitions.length; i++) {
-      if(parts.length == 0) return false
-      var part = parts.shift();
-      var partDefinition = partDefinitions[i];
-      var partParams = this._matchPart(partDefinition, part);
-      if(!partParams) return false;
-      
-      jQuery.extend(params, partParams);
+    if(path) {
+      var partDefinitions = path.split('/');
+        
+      for(var i = 0; i < partDefinitions.length; i++) {
+        if(parts.length == 0) return false
+        var part = parts.shift();
+        var partDefinition = partDefinitions[i];
+        var partParams = this._matchPart(partDefinition, part);
+        if(!partParams) return false;
+        
+        jQuery.extend(params, partParams);
+      }
+    }
+    
+    if(Ember.typeOf(state.willAccept) == 'function') {
+      if(!state.willAccept(params)) return false;
     }
     
     return {parts: parts, params: params}

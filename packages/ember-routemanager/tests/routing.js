@@ -87,3 +87,69 @@ test('Route With Params', function() {
   
   routeManager.destroy();
 });
+
+test('Routes With Pathless State', function() {
+  var stateReached = false;
+  
+  var routeManager = Ember.RouteManager.create({
+    post: Ember.State.create({
+      path: 'posts/:postId',
+      enter: function(stateManager) {
+        postId = stateManager.params.postId
+      },
+      admin: Ember.State.create({
+        edit: Ember.State.create({
+          path: 'edit',
+          enter: function() {
+            stateReached = true;
+          }
+        })
+      })
+      
+    })
+  });
+  
+  routeManager.set('location', 'posts/1/edit');
+  
+  ok(stateReached, 'The state should have been reached.')
+  
+  routeManager.destroy();
+});
+
+test("Route With Accept Logic", function() {
+  var isAdmin = true;
+  var stateReached = false;
+  
+  var routeManager = Ember.RouteManager.create({
+    post: Ember.State.create({
+      path: 'posts/:postId',
+      enter: function(stateManager) {
+        postId = stateManager.params.postId
+      },
+      admin: Ember.State.create({
+        willAccept: function() {
+          return isAdmin;
+        },
+        edit: Ember.State.create({
+          path: 'edit',
+          enter: function() {
+            stateReached = true;
+          }
+        })
+      })
+      
+    })
+  });
+  
+  routeManager.set('location', 'posts/1/edit');
+  ok(stateReached, 'The state should have been reached.');
+  
+  routeManager.set('location', 'posts/1');
+  isAdmin = false;
+  stateReached = false;
+  
+  routeManager.set('location', 'posts/1/edit');
+  ok(!stateReached, 'The state should not have been reached.');
+  
+  routeManager.destroy();
+});
