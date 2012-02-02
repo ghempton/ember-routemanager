@@ -13,113 +13,6 @@ var supportsHashChange = ('onhashchange' in window) && (document.documentMode ==
 /**
   @class
 
-  Route is a class used internally by Ember.routes. The routes defined by your
-  application are stored in a tree structure, and this is the class for the
-  nodes.
-*/
-var Route = Ember.Object.extend(
-/** @scope Route.prototype */ {
-
-  target: null,
-
-  method: null,
-
-  staticRoutes: null,
-
-  dynamicRoutes: null,
-
-  wildcardRoutes: null,
-
-  add: function(parts, target, method) {
-    var part, nextRoute;
-
-    // clone the parts array because we are going to alter it
-    parts = Ember.copy(parts);
-
-    if (!parts || parts.length === 0) {
-      this.target = target;
-      this.method = method;
-      return this;
-    } else {
-      part = parts.shift();
-
-      // there are 3 types of routes
-      switch (part.slice(0, 1)) {
-
-      // 1. dynamic routes
-      case ':':
-        part = part.slice(1, part.length);
-        if (!this.dynamicRoutes) this.dynamicRoutes = {};
-        if (!this.dynamicRoutes[part]) this.dynamicRoutes[part] = this.constructor.create();
-        nextRoute = this.dynamicRoutes[part];
-        break;
-
-      // 2. wildcard routes
-      case '*':
-        part = part.slice(1, part.length);
-        if (!this.wildcardRoutes) this.wildcardRoutes = {};
-        nextRoute = this.wildcardRoutes[part] = this.constructor.create();
-        break;
-
-      // 3. static routes
-      default:
-        if (!this.staticRoutes) this.staticRoutes = {};
-        if (!this.staticRoutes[part]) this.staticRoutes[part] = this.constructor.create();
-        nextRoute = this.staticRoutes[part];
-      }
-
-      // recursively add the rest of the route
-      if (nextRoute) return nextRoute.add(parts, target, method);
-      return this;
-    }
-  },
-
-  routeForParts: function(parts, params) {
-    var part, key, route;
-    // clone the parts array because we are going to alter it
-    parts = Ember.copy(parts);
-
-    // if parts is empty, we are done
-    if (!parts || parts.length === 0) {
-      return this.method ? this : null;
-
-    } else {
-      part = parts.shift();
-
-      // try to match a static route
-      if (this.staticRoutes && this.staticRoutes[part]) {
-        route = this.staticRoutes[part].routeForParts(parts, params);
-        if (route) {
-          return route;
-        }
-      }
-
-      // else, try to match a dynamic route
-      for (key in this.dynamicRoutes) {
-        route = this.dynamicRoutes[key].routeForParts(parts, params);
-        if (route) {
-          params[key] = part;
-          return route;
-        }
-      }
-
-      // else, try to match a wilcard route
-      for (key in this.wildcardRoutes) {
-        parts.unshift(part);
-        params[key] = parts.join('/');
-        return this.wildcardRoutes[key].routeForParts(null, params);
-      }
-
-      // if nothing was found, it means that there is no match
-      return null;
-    }
-  }
-
-});
-
-/**
-  @class
-
   Ember.routes manages the browser location. You can change the hash part of the
   current location. The following code
 
@@ -227,21 +120,6 @@ Ember.RouteManager = Ember.StateManager.extend(
     @type {String}
   */
   _location: null,
-
-  /** @private
-    Routes are stored in a tree structure, this is the root node.
-
-    @property
-    @type {Route}
-  */
-  _firstRoute: null,
-
-  /** @private
-    An internal reference to the Route class.
-
-    @property
-  */
-  _Route: Route,
 
   /** @private
     Internal method used to extract and merge the parameters of a URL.
@@ -433,8 +311,6 @@ Ember.RouteManager = Ember.StateManager.extend(
   },
   
   destroy: function() {
-    this._super();
-    
     if(this._didSetup) {
       if (get(this, 'wantsHistory') && supportsHistory) {
         jQuery(window).unbind('popstate', this.popState);
@@ -446,6 +322,7 @@ Ember.RouteManager = Ember.StateManager.extend(
         }
       }
     }
+    this._super();
   },
 
   init: function() {
@@ -453,32 +330,6 @@ Ember.RouteManager = Ember.StateManager.extend(
     if (!this._didSetup) {
       Ember.run.once(this, 'ping');
     }
-    if (!this._firstRoute) this._firstRoute = Route.create();
-    
-    var self = this;
-    var createRoutes = function(state, names) { 
-      var route = state.getPath('parentState._route') || self._firstRoute;
-      var path = state.get('path');
-      
-      if(path) {
-        route = route.add(path.split('/'), null, function(params) {
-          self.set('params', params);
-          self.goToState(names.join('.'));
-        });
-        route.set('state', state);
-      }
-      state.set('_route', route);
-      
-      var states = state.get('states');
-      for(var name in states) {
-        var namesCopy = Ember.copy(names);
-        namesCopy.push(name);
-        createRoutes(states[name],  namesCopy);
-      }
-    }
-    
-    // Loop over the state hierarchy and construct routes
-    createRoutes(this, []);
   },
 
   /**
@@ -500,31 +351,104 @@ Ember.RouteManager = Ember.StateManager.extend(
     var location = get(this, 'location'),
         params, route;
 
-    if (this._firstRoute) {
-      params = this._extractParametersAndRoute({ route: location });
-      location = params.route;
-      delete params.route;
-      delete params.params;
-
-      route = this.getRoute(location, params);
-      if (route && route.method) {
-        route.method.call(route.target || this, params);
+    params = this._extractParametersAndRoute({ route: location });
+    location = params.route;
+    delete params.route;
+    delete params.params;
+      
+    var result = this.getState(location, params);
+    if(result) {
+      set(this, 'params', result.params);
+      
+      var stateName = result.names.join('.');
+      this.goToState(stateName);
+    }
+  },
+  
+  getState: function(route, params) {
+    parts = route.split('/')
+    return this._findState(parts, this, [], params);
+  },
+  
+  /**
+   * Private recursive helper method
+   * 
+   * Returns the state and the params if a match is found
+   */
+  _findState: function(parts, state, names, params) {
+    parts = Ember.copy(parts);
+    // if parts is empty, we are done
+    if (!parts || parts.length === 0) {
+      return {state:state, params:params, names:names};
+    } else {
+      for(name in state.states) {
+        var childState = state.states[name];
+        var result = this._matchState(parts, childState, params);
+        if(!result) continue;
+        newParams = Ember.copy(params);
+        jQuery.extend(newParams, result.params);
+        
+        var namesCopy = Ember.copy(names);
+        namesCopy.push(name);
+        result = this._findState(result.parts, childState, namesCopy, newParams);
+        if(result)
+          return result;
       }
+ 
     }
+    
+    return null;
   },
-
-  getRoute: function(route, params) {
-    var firstRoute = this._firstRoute;
-    if (params === null) {
-      params = {};
+  
+  /**
+   * Private: check if a state accepts the parts with the params
+   * 
+   * Returns the remaining parts as well as merged params if
+   * the state accepts
+   */
+  _matchState: function(parts, state, params) {
+    parts = Ember.copy(parts);
+    params = Ember.copy(params);
+    var path = get(state, 'path');
+    var partDefinitions = path.split('/');
+      
+    for(var i = 0; i < partDefinitions.length; i++) {
+      if(parts.length == 0) return false
+      var part = parts.shift();
+      var partDefinition = partDefinitions[i];
+      var partParams = this._matchPart(partDefinition, part);
+      if(!partParams) return false;
+      
+      jQuery.extend(params, partParams);
     }
-
-    return firstRoute.routeForParts(route.split('/'), params);
+    
+    return {parts: parts, params: params}
   },
+  
+  /**
+   * Private: return params if the part matches the partDefinition
+   */
+  _matchPart: function(partDefinition, part) {
+    switch (partDefinition.slice(0, 1)) {
+    // 1. dynamic routes
+    case ':':
+      var name = partDefinition.slice(1, partDefinition.length);
+      var params = {};
+      params[name] = part;
+      return params;
 
-  exists: function(route, params) {
-    route = this.getRoute(route, params);
-    return route !== null && route.method !== null;
+    // 2. wildcard routes
+    case '*':
+      return {};
+
+    // 3. static routes
+    default:
+      if(partDefinition == part)
+        return {}
+      break;
+    }
+    
+    return false;
   },
   
   /**

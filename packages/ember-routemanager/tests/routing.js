@@ -10,7 +10,7 @@ test('Setup', function() {
 });
 
 
-test('Basic Route', function() {
+test('Basic Static Route', function() {
   
   var stateReached = false;
   
@@ -34,8 +34,32 @@ test('Basic Route', function() {
   routeManager.destroy();
 });
 
+test('Multi-part Static Routes', function() {
+  
+  var stateReached = false;
+  
+  var routeManager = Ember.RouteManager.create({
+    posts: Ember.State.create({
+      path: 'posts',
+      
+      comments: Ember.State.create({
+        path: 'comments/all',
+        enter: function() {
+          stateReached = true;
+        }
+      })
+    })
+  });
+  
+  routeManager.set('location', 'posts/comments/all');
+  
+  ok(stateReached, 'The state should have been reached.')
+  
+  routeManager.destroy();
+});
 
-test('Basic Route With Params', function() {
+
+test('Route With Params', function() {
   
   var commentId;
   var postId;
@@ -61,4 +85,5 @@ test('Basic Route With Params', function() {
   equals(postId, 1, "The first param should have been set.");
   equals(commentId, 4, "The second param should have been set.");
   
+  routeManager.destroy();
 });
