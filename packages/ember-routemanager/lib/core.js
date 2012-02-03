@@ -380,6 +380,7 @@ Ember.RouteManager = Ember.StateManager.extend(
 
     for(var name in state.states) {
       var childState = state.states[name];
+      if(!(childState instanceof Ember.State)) continue;
       var result = this._matchState(parts, childState, params);
       if(!result) continue;
       newParams = Ember.copy(params);
