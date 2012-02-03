@@ -366,7 +366,10 @@ Ember.RouteManager = Ember.StateManager.extend(
   },
   
   getState: function(route, params) {
-    parts = route.split('/')
+    var parts = route.split('/')
+    parts = parts.filter(function(part) {
+      return part != '';
+    });
     return this._findState(parts, this, [], params);
   },
   
@@ -378,14 +381,17 @@ Ember.RouteManager = Ember.StateManager.extend(
   _findState: function(parts, state, names, params) {
     parts = Ember.copy(parts);
 
+    var hasChildren = false;
     for(var name in state.states) {
       var childState = state.states[name];
       if(!(childState instanceof Ember.State)) continue;
+      hasChildren = true;
+      
       var result = this._matchState(parts, childState, params);
       if(!result) continue;
-      newParams = Ember.copy(params);
-      jQuery.extend(newParams, result.params);
       
+      var newParams = Ember.copy(params);
+      jQuery.extend(newParams, result.params);
       var namesCopy = Ember.copy(names);
       namesCopy.push(name);
       result = this._findState(result.parts, childState, namesCopy, newParams);
@@ -393,7 +399,7 @@ Ember.RouteManager = Ember.StateManager.extend(
         return result;
     }
     
-    if (parts.length === 0) {
+    if (!hasChildren && parts.length === 0) {
       return {state:state, params:params, names:names};
     }
     return null;

@@ -176,3 +176,49 @@ test("Route Ending on Pathless State", function() {
   
   routeManager.destroy();
 });
+
+test('Route With Home State', function() {
+  
+  var postsReached = false;
+  var commentsReached = false;
+  var homeReached = false;
+  
+  var routeManager = Ember.RouteManager.create({
+    posts: Ember.State.create({
+      path: 'posts',
+      enter: function() {
+        postsReached = true;
+      },
+      
+      comments: Ember.State.create({
+        path: 'comments',
+        enter: function() {
+          commentsReached = true;
+        }
+      })
+    }),
+    
+    home: Ember.State.create({
+      enter: function() {
+        homeReached = true;
+      }
+    })
+  });
+  
+  routeManager.set('location', ''); 
+  ok(homeReached, 'The home state should have been reached.');
+  
+  homeReached = false;
+  
+  routeManager.set('location', 'posts');
+  ok(!postsReached, 'Only leaf states can be routed to');
+  
+  routeManager.set('location', 'posts/comments');
+  
+  ok(postsReached, 'Intermediary state should have been reached.');
+  ok(commentsReached, 'Leaf state should have been reached');
+  ok(!homeReached, 'The home state should not have been reached.')
+  equals(routeManager.get('currentState'), routeManager.getPath('posts.comments'), "The current state should be set correctly.");
+  
+  routeManager.destroy();
+});
