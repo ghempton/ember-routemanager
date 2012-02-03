@@ -377,26 +377,24 @@ Ember.RouteManager = Ember.StateManager.extend(
    */
   _findState: function(parts, state, names, params) {
     parts = Ember.copy(parts);
-    // if parts is empty, we are done
-    if (!parts || parts.length === 0) {
-      return {state:state, params:params, names:names};
-    } else {
-      for(name in state.states) {
-        var childState = state.states[name];
-        var result = this._matchState(parts, childState, params);
-        if(!result) continue;
-        newParams = Ember.copy(params);
-        jQuery.extend(newParams, result.params);
-        
-        var namesCopy = Ember.copy(names);
-        namesCopy.push(name);
-        result = this._findState(result.parts, childState, namesCopy, newParams);
-        if(result)
-          return result;
-      }
- 
+
+    for(var name in state.states) {
+      var childState = state.states[name];
+      var result = this._matchState(parts, childState, params);
+      if(!result) continue;
+      newParams = Ember.copy(params);
+      jQuery.extend(newParams, result.params);
+      
+      var namesCopy = Ember.copy(names);
+      namesCopy.push(name);
+      result = this._findState(result.parts, childState, namesCopy, newParams);
+      if(result)
+        return result;
     }
     
+    if (parts.length === 0) {
+      return {state:state, params:params, names:names};
+    }
     return null;
   },
   

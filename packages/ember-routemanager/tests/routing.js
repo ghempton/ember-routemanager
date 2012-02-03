@@ -153,3 +153,26 @@ test("Route With Accept Logic", function() {
   
   routeManager.destroy();
 });
+
+test("Route Ending on Pathless State", function() {
+  var stateReached = false;
+  
+  var routeManager = Ember.RouteManager.create({
+    post: Ember.State.create({
+      path: 'posts',
+      
+      show: Ember.State.create({
+        enter: function() {
+          stateReached = true;
+        }
+      })
+      
+    })
+  });
+  
+  routeManager.set('location', 'posts');
+  
+  ok(stateReached, 'The state should have been reached.');
+  
+  routeManager.destroy();
+});
