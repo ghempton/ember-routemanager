@@ -360,8 +360,23 @@ Ember.RouteManager = Ember.StateManager.extend(
     if(result) {
       set(this, 'params', result.params);
       
-      var stateName = result.names.join('.');
-      this.goToState(stateName);
+      // We switch states in two phases. The point of this is to handle
+      // parameter-only location changes. This will correspond to the same
+      // state path in the manager, but states with parts with changed
+      // parameters should be re-entered:
+      
+      // 1. We go to the earliest clean state. This prevents
+      // unnecessary transitions.         
+      if(result.cleanStates.length > 0) {
+        var cleanState = result.cleanStates.join('.');
+        this.goToState(cleanState);
+      }
+      // 2. We transition to the dirty state. This forces dirty
+      // states to be transitioned.
+      if(result.dirtyStates.length > 0) {
+        var dirtyState = result.cleanStates.concat(result.dirtyStates).join('.');
+        this.goToState(dirtyState);
+      }
     }
   },
   
@@ -370,7 +385,7 @@ Ember.RouteManager = Ember.StateManager.extend(
     parts = parts.filter(function(part) {
       return part != '';
     });
-    return this._findState(parts, this, [], params);
+    return this._findState(parts, this, [], [], params, false);
   },
   
   /**
@@ -378,7 +393,7 @@ Ember.RouteManager = Ember.StateManager.extend(
    * 
    * Returns the state and the params if a match is found
    */
-  _findState: function(parts, state, names, params) {
+  _findState: function(parts, state, cleanStates, dirtyStates, params) {
     parts = Ember.copy(parts);
 
     var hasChildren = false;
@@ -392,15 +407,25 @@ Ember.RouteManager = Ember.StateManager.extend(
       
       var newParams = Ember.copy(params);
       jQuery.extend(newParams, result.params);
-      var namesCopy = Ember.copy(names);
-      namesCopy.push(name);
-      result = this._findState(result.parts, childState, namesCopy, newParams);
+      
+      var dirty = dirtyStates.length > 0 || result.dirty;
+      var newCleanStates = cleanStates;
+      var newDirtyStates = dirtyStates;
+      if(dirty) {
+        newDirtyStates = Ember.copy(newDirtyStates);
+        newDirtyStates.push(name);
+      } else {
+        newCleanStates = Ember.copy(newCleanStates);
+        newCleanStates.push(name);
+      }
+      
+      result = this._findState(result.parts, childState, newCleanStates, newDirtyStates, newParams);
       if(result)
         return result;
     }
     
     if (!hasChildren && parts.length === 0) {
-      return {state:state, params:params, names:names};
+      return {state:state, params:params, cleanStates: cleanStates, dirtyStates: dirtyStates};
     }
     return null;
   },
@@ -409,11 +434,15 @@ Ember.RouteManager = Ember.StateManager.extend(
    * Private: check if a state accepts the parts with the params
    * 
    * Returns the remaining parts as well as merged params if
-   * the state accepts
+   * the state accepts.
+   * 
+   * Will also set the dirty flag if the route is the same but
+   * the parameters have changed
    */
   _matchState: function(parts, state, params) {
     parts = Ember.copy(parts);
     params = Ember.copy(params);
+    dirty = false;
     var path = get(state, 'path');
     if(path) {
       var partDefinitions = path.split('/');
@@ -425,6 +454,11 @@ Ember.RouteManager = Ember.StateManager.extend(
         var partParams = this._matchPart(partDefinition, part);
         if(!partParams) return false;
         
+        var oldParams = this.get('params') || {};
+        for(var param in partParams) {
+          dirty = dirty || (oldParams[param] != partParams[param]);
+        }
+        
         jQuery.extend(params, partParams);
       }
     }
@@ -433,7 +467,7 @@ Ember.RouteManager = Ember.StateManager.extend(
       if(!state.willAccept(params)) return false;
     }
     
-    return {parts: parts, params: params}
+    return {parts: parts, params: params, dirty: dirty}
   },
   
   /**

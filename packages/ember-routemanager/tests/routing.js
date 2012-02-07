@@ -1,5 +1,11 @@
+var routeManager;
+
 module('Ember.RouteManager', {
   setup: function() {
+  },
+  
+  teardown: function() {
+    if(routeManager) routeManager.destroy();
   }
 });
 
@@ -14,7 +20,7 @@ test('Basic Static Route', function() {
   
   var stateReached = false;
   
-  var routeManager = Ember.RouteManager.create({
+  routeManager = Ember.RouteManager.create({
     posts: Ember.State.create({
       path: 'posts',
       
@@ -30,15 +36,13 @@ test('Basic Static Route', function() {
   routeManager.set('location', 'posts/comments');
   
   ok(stateReached, 'The state should have been reached.')
-  
-  routeManager.destroy();
 });
 
 test('Multi-part Static Routes', function() {
   
   var stateReached = false;
   
-  var routeManager = Ember.RouteManager.create({
+  routeManager = Ember.RouteManager.create({
     posts: Ember.State.create({
       path: 'posts',
       
@@ -54,8 +58,6 @@ test('Multi-part Static Routes', function() {
   routeManager.set('location', 'posts/comments/all');
   
   ok(stateReached, 'The state should have been reached.')
-  
-  routeManager.destroy();
 });
 
 
@@ -64,7 +66,7 @@ test('Route With Params', function() {
   var commentId;
   var postId;
   
-  var routeManager = Ember.RouteManager.create({
+  routeManager = Ember.RouteManager.create({
     post: Ember.State.create({
       path: 'posts/:postId',
       enter: function(stateManager) {
@@ -84,14 +86,12 @@ test('Route With Params', function() {
   
   equals(postId, 1, "The first param should have been set.");
   equals(commentId, 4, "The second param should have been set.");
-  
-  routeManager.destroy();
 });
 
 test('Routes With Pathless State', function() {
   var stateReached = false;
   
-  var routeManager = Ember.RouteManager.create({
+  routeManager = Ember.RouteManager.create({
     post: Ember.State.create({
       path: 'posts/:postId',
       enter: function(stateManager) {
@@ -112,15 +112,13 @@ test('Routes With Pathless State', function() {
   routeManager.set('location', 'posts/1/edit');
   
   ok(stateReached, 'The state should have been reached.')
-  
-  routeManager.destroy();
 });
 
 test("Route With Accept Logic", function() {
   var isAdmin = true;
   var stateReached = false;
   
-  var routeManager = Ember.RouteManager.create({
+  routeManager = Ember.RouteManager.create({
     post: Ember.State.create({
       path: 'posts/:postId',
       enter: function(stateManager) {
@@ -150,14 +148,12 @@ test("Route With Accept Logic", function() {
   
   routeManager.set('location', 'posts/1/edit');
   ok(!stateReached, 'The state should not have been reached.');
-  
-  routeManager.destroy();
 });
 
 test("Route Ending on Pathless State", function() {
   var stateReached = false;
   
-  var routeManager = Ember.RouteManager.create({
+  routeManager = Ember.RouteManager.create({
     post: Ember.State.create({
       path: 'posts',
       
@@ -173,8 +169,6 @@ test("Route Ending on Pathless State", function() {
   routeManager.set('location', 'posts');
   
   ok(stateReached, 'The state should have been reached.');
-  
-  routeManager.destroy();
 });
 
 test('Route With Home State', function() {
@@ -183,7 +177,7 @@ test('Route With Home State', function() {
   var commentsReached = false;
   var homeReached = false;
   
-  var routeManager = Ember.RouteManager.create({
+  routeManager = Ember.RouteManager.create({
     posts: Ember.State.create({
       path: 'posts',
       enter: function() {
@@ -219,6 +213,50 @@ test('Route With Home State', function() {
   ok(commentsReached, 'Leaf state should have been reached');
   ok(!homeReached, 'The home state should not have been reached.')
   equals(routeManager.get('currentState'), routeManager.getPath('posts.comments'), "The current state should be set correctly.");
+});
+
+test("Parameter-Only Changes", function() {
+  postsEnterCount = 0;
+  postsExitCount = 0;
+  commentsEnterCount = 0;
+  commentsExitCount = 0;
   
-  routeManager.destroy();
+  routeManager = Ember.RouteManager.create({
+    posts: Ember.State.create({
+      path: 'posts',
+      enter: function() {
+        postsEnterCount++;
+      },
+      exit: function() {
+        postsExitCount++;
+      },
+      post: Ember.State.create({
+        path: ':postId',
+        comments: Ember.State.create({
+          path: 'comments',
+          enter: function() {
+            commentsEnterCount++;
+          },
+          exit: function() {
+            commentsExitCount++;
+          }
+        })
+      
+      })
+    })
+  });
+  
+  routeManager.set('location', 'posts/1/comments');
+  
+  equals(postsEnterCount, 1, 'posts enter count');
+  equals(postsExitCount, 0, 'posts exit count')
+  equals(commentsEnterCount, 1, 'comments enter count');
+  equals(commentsExitCount, 0, 'comments exit count');
+  
+  routeManager.set('location', 'posts/2/comments');
+  
+  equals(postsEnterCount, 1, 'posts enter count');
+  equals(postsExitCount, 0, 'posts exit count')
+  equals(commentsEnterCount, 2, 'comments enter count');
+  equals(commentsExitCount, 1, 'comments exit count');
 });
