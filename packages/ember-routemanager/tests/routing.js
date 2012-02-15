@@ -260,3 +260,46 @@ test("Parameter-Only Changes", function() {
   equals(commentsEnterCount, 2, 'comments enter count');
   equals(commentsExitCount, 1, 'comments exit count');
 });
+
+test("Should obey 404 state", function() {
+  var section1Count = 0;
+  var homeCount = 0;
+  var _404count = 0;
+  
+  routeManager = Ember.RouteManager.create({
+    section1: Ember.State.create({
+      path: 'section1',
+      enter: function() {
+        section1Count++;
+      }
+    }),
+    home: Ember.State.create({
+      enter: function() {
+        homeCount++;
+      }
+    }),
+    "404": Ember.State.create({
+      enter: function() {
+        _404count++;
+      }
+    })
+  });
+  
+  routeManager.set('location', '');
+  
+  equals(section1Count, 0, 'section1 count');
+  equals(homeCount, 1, 'home count')
+  equals(_404count, 0, '404 count');
+  
+  routeManager.set('location', 'section1');
+  
+  equals(section1Count, 1, 'section1 count');
+  equals(homeCount, 1, 'home count')
+  equals(_404count, 0, '404 count');
+  
+  routeManager.set('location', 'this-is-a-bad-route');
+  
+  equals(section1Count, 1, 'section1 count');
+  equals(homeCount, 1, 'home count')
+  equals(_404count, 1, '404 count');
+});

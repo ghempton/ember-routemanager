@@ -377,6 +377,10 @@ Ember.RouteManager = Ember.StateManager.extend(
         var dirtyState = result.cleanStates.concat(result.dirtyStates).join('.');
         this.goToState(dirtyState);
       }
+    } else {
+      var states = get(this, 'states');
+      if(states && get(states, "404"))
+        this.goToState("404");
     }
   },
   
@@ -398,6 +402,11 @@ Ember.RouteManager = Ember.StateManager.extend(
 
     var hasChildren = false;
     for(var name in state.states) {
+      
+      // the "404" state is special
+      if(name == "404")
+        continue;
+      
       var childState = state.states[name];
       if(!(childState instanceof Ember.State)) continue;
       hasChildren = true;
