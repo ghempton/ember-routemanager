@@ -401,13 +401,21 @@ Ember.RouteManager = Ember.StateManager.extend(
     parts = Ember.copy(parts);
 
     var hasChildren = false;
+    // sort desc based on priority
+    var states = [];
     for(var name in state.states) {
-      
-      // the "404" state is special
+      // 404 state is special and not matched
       if(name == "404")
         continue;
-      
-      var childState = state.states[name];
+      states.push({name: name, state: state.states[name]});
+    }
+    states = states.sort(function(a,b ) {
+      return (b.state.get('priority') || 0) - (a.state.get('priority') || 0);
+    });
+    
+    for(var i = 0; i < states.length; i++) {
+      var name = states[i].name;
+      var childState = states[i].state;
       if(!(childState instanceof Ember.State)) continue;
       hasChildren = true;
       
@@ -451,10 +459,17 @@ Ember.RouteManager = Ember.StateManager.extend(
   _matchState: function(parts, state, params) {
     parts = Ember.copy(parts);
     params = Ember.copy(params);
-    dirty = false;
+    var dirty = false;
     var path = get(state, 'path');
     if(path) {
-      var partDefinitions = path.split('/');
+      var partDefinitions;
+      // path could be either a string or regex
+      if(typeof path == "string")
+        partDefinitions = path.split('/');
+      else if(path instanceof RegExp)
+        partDefinitions = [path];
+      else
+        ember_assert("path must be either a string or regexp", false);
         
       for(var i = 0; i < partDefinitions.length; i++) {
         if(parts.length == 0) return false
@@ -483,26 +498,33 @@ Ember.RouteManager = Ember.StateManager.extend(
    * Private: return params if the part matches the partDefinition
    */
   _matchPart: function(partDefinition, part) {
-    switch (partDefinition.slice(0, 1)) {
-    // 1. dynamic routes
-    case ':':
-      var name = partDefinition.slice(1, partDefinition.length);
-      var params = {};
-      params[name] = part;
-      return params;
-
-    // 2. wildcard routes
-    case '*':
-      return {};
-
-    // 3. static routes
-    default:
-      if(partDefinition == part)
-        return {}
-      break;
+    // Handle string parts
+    if(typeof partDefinition == "string") {
+      
+      switch (partDefinition.slice(0, 1)) {
+      // 1. dynamic routes
+      case ':':
+        var name = partDefinition.slice(1, partDefinition.length);
+        var params = {};
+        params[name] = part;
+        return params;
+  
+      // 2. wildcard routes
+      case '*':
+        return {};
+  
+      // 3. static routes
+      default:
+        if(partDefinition == part)
+          return {}
+        break;
+      }
+      
+      return false;
     }
-    
-    return false;
+
+    // Handle RegExp parts
+    return partDefinition.test(part) ? {} : false;
   },
   
   /**

@@ -16,7 +16,7 @@ test('Setup', function() {
 });
 
 
-test('Basic Static Route', function() {
+test('Basic static path', function() {
   
   var stateReached = false;
   
@@ -38,7 +38,7 @@ test('Basic Static Route', function() {
   ok(stateReached, 'The state should have been reached.')
 });
 
-test('Multi-part Static Routes', function() {
+test('Complex static paths', function() {
   
   var stateReached = false;
   
@@ -61,7 +61,7 @@ test('Multi-part Static Routes', function() {
 });
 
 
-test('Route With Params', function() {
+test('Parameter paths', function() {
   
   var commentId;
   var postId;
@@ -88,7 +88,7 @@ test('Route With Params', function() {
   equals(commentId, 4, "The second param should have been set.");
 });
 
-test('Routes With Pathless State', function() {
+test('Pathless states', function() {
   var stateReached = false;
   
   routeManager = Ember.RouteManager.create({
@@ -111,7 +111,79 @@ test('Routes With Pathless State', function() {
   
   routeManager.set('location', 'posts/1/edit');
   
-  ok(stateReached, 'The state should have been reached.')
+  ok(stateReached, 'The state should have been reached.');
+});
+
+test("Wildcard paths", function() {
+  var stateReached = false;
+  
+  routeManager = Ember.RouteManager.create({
+    posts: Ember.State.create({
+      path: 'posts',
+      
+      comments: Ember.State.create({
+        path: '*',
+        enter: function() {
+          stateReached = true;
+        }
+      })
+    })
+  });
+  
+  routeManager.set('location', 'posts/comments');
+  
+  ok(stateReached, 'The state should have been reached.');
+});
+
+test("Regexp paths", function() {
+  var stateReached = false;
+  
+  routeManager = Ember.RouteManager.create({
+    posts: Ember.State.create({
+      path: /p.*/,
+      
+      comments: Ember.State.create({
+        path: 'comments',
+        enter: function() {
+          stateReached = true;
+        }
+      })
+    })
+  });
+  
+  routeManager.set('location', 'posts/comments');
+  
+  ok(stateReached, 'The state should have been reached.');
+});
+
+test("Priority is obeyed", function() {
+  var stateReached = false;
+  
+  routeManager = Ember.RouteManager.create({
+    route1: Ember.State.create({
+      path: 'test',
+      priority: 1
+    }),
+    route2: Ember.State.create({
+      path: 'test',
+      priority: 3,
+      enter: function() {
+        stateReached = true;
+      }
+    }),
+    route3: Ember.State.create({
+      path: 'test',
+      priority: -1
+    }),
+    route4: Ember.State.create({
+      path: 'test',
+      priority: 1
+    })
+  });
+  
+  routeManager.set('location', 'test');
+  
+  ok(stateReached, 'The state should have been reached.');
 });
 
 test("Route With Accept Logic", function() {
@@ -302,4 +374,16 @@ test("Should obey 404 state", function() {
   equals(section1Count, 1, 'section1 count');
   equals(homeCount, 1, 'home count')
   equals(_404count, 1, '404 count');
+  
+  routeManager.set('location', 'section1');
+  
+  equals(section1Count, 2, 'section1 count');
+  equals(homeCount, 1, 'home count')
+  equals(_404count, 1, '404 count');
+  
+  routeManager.set('location', 'this-is-another/bad/route');
+  
+  equals(section1Count, 2, 'section1 count');
+  equals(homeCount, 1, 'home count')
+  equals(_404count, 2, '404 count');
 });
