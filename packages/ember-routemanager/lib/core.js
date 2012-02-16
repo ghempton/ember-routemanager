@@ -405,9 +405,11 @@ Ember.RouteManager = Ember.StateManager.extend(
     var states = [];
     for(var name in state.states) {
       // 404 state is special and not matched
-      if(name == "404")
+      var childState = state.states[name];
+      if(name == "404"
+        || !Ember.State.detect(childState) && !(childState instanceof Ember.State))
         continue;
-      states.push({name: name, state: state.states[name]});
+      states.push({name: name, state: childState});
     }
     states = states.sort(function(a,b ) {
       return (b.state.get('priority') || 0) - (a.state.get('priority') || 0);
