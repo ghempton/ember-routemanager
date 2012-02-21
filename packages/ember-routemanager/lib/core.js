@@ -276,7 +276,7 @@ Ember.RouteManager = Ember.StateManager.extend(
         }
 
         this.popState();
-        this.popState = jQuery.proxy(this.popState, this)
+        this.popState = jQuery.proxy(this.popState, this);
         jQuery(window).bind('popstate', this.popState);
 
       } else {
@@ -385,9 +385,9 @@ Ember.RouteManager = Ember.StateManager.extend(
   },
   
   getState: function(route, params) {
-    var parts = route.split('/')
+    var parts = route.split('/');
     parts = parts.filter(function(part) {
-      return part != '';
+      return part !== '';
     });
     return this._findState(parts, this, [], [], params, false);
   },
@@ -400,14 +400,15 @@ Ember.RouteManager = Ember.StateManager.extend(
   _findState: function(parts, state, cleanStates, dirtyStates, params) {
     parts = Ember.copy(parts);
 
-    var hasChildren = false;
+    var hasChildren = false,
+        name, states, childState;
     // sort desc based on priority
-    var states = [];
-    for(var name in state.states) {
+    states = [];
+    for(name in state.states) {
       // 404 state is special and not matched
-      var childState = state.states[name];
-      if(name == "404"
-        || !Ember.State.detect(childState) && !(childState instanceof Ember.State))
+      childState = state.states[name];
+      if(name == "404" ||
+        !Ember.State.detect(childState) && !(childState instanceof Ember.State))
         continue;
       states.push({name: name, state: childState});
     }
@@ -416,8 +417,8 @@ Ember.RouteManager = Ember.StateManager.extend(
     });
     
     for(var i = 0; i < states.length; i++) {
-      var name = states[i].name;
-      var childState = states[i].state;
+      name = states[i].name;
+      childState = states[i].state;
       if(!(childState instanceof Ember.State)) continue;
       hasChildren = true;
       
@@ -474,7 +475,7 @@ Ember.RouteManager = Ember.StateManager.extend(
         ember_assert("path must be either a string or regexp", false);
         
       for(var i = 0; i < partDefinitions.length; i++) {
-        if(parts.length == 0) return false
+        if(parts.length === 0) return false;
         var part = parts.shift();
         var partDefinition = partDefinitions[i];
         var partParams = this._matchPart(partDefinition, part);
@@ -493,7 +494,7 @@ Ember.RouteManager = Ember.StateManager.extend(
       if(!state.willAccept(params)) return false;
     }
     
-    return {parts: parts, params: params, dirty: dirty}
+    return {parts: parts, params: params, dirty: dirty};
   },
   
   /**
@@ -518,7 +519,7 @@ Ember.RouteManager = Ember.StateManager.extend(
       // 3. static routes
       default:
         if(partDefinition == part)
-          return {}
+          return {};
         break;
       }
       

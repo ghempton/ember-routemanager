@@ -35,7 +35,7 @@ test('Basic static path', function() {
   
   routeManager.set('location', 'posts/comments');
   
-  ok(stateReached, 'The state should have been reached.')
+  ok(stateReached, 'The state should have been reached.');
 });
 
 test('Complex static paths', function() {
@@ -57,7 +57,7 @@ test('Complex static paths', function() {
   
   routeManager.set('location', 'posts/comments/all');
   
-  ok(stateReached, 'The state should have been reached.')
+  ok(stateReached, 'The state should have been reached.');
 });
 
 
@@ -70,13 +70,13 @@ test('Parameter paths', function() {
     post: Ember.State.create({
       path: 'posts/:postId',
       enter: function(stateManager) {
-        postId = stateManager.params.postId
+        postId = stateManager.params.postId;
       },
       
       comment: Ember.State.create({
         path: 'comments/:commentId',
         enter: function(stateManager) {
-          commentId = stateManager.params.commentId
+          commentId = stateManager.params.commentId;
         }
       })
     })
@@ -95,7 +95,7 @@ test('Pathless states', function() {
     post: Ember.State.create({
       path: 'posts/:postId',
       enter: function(stateManager) {
-        postId = stateManager.params.postId
+        postId = stateManager.params.postId;
       },
       admin: Ember.State.create({
         edit: Ember.State.create({
@@ -194,7 +194,7 @@ test("Route With Accept Logic", function() {
     post: Ember.State.create({
       path: 'posts/:postId',
       enter: function(stateManager) {
-        postId = stateManager.params.postId
+        postId = stateManager.params.postId;
       },
       admin: Ember.State.create({
         willAccept: function() {
@@ -283,7 +283,7 @@ test('Route With Home State', function() {
   
   ok(postsReached, 'Intermediary state should have been reached.');
   ok(commentsReached, 'Leaf state should have been reached');
-  ok(!homeReached, 'The home state should not have been reached.')
+  ok(!homeReached, 'The home state should not have been reached.');
   equals(routeManager.get('currentState'), routeManager.getPath('posts.comments'), "The current state should be set correctly.");
 });
 
@@ -321,14 +321,14 @@ test("Parameter-Only Changes", function() {
   routeManager.set('location', 'posts/1/comments');
   
   equals(postsEnterCount, 1, 'posts enter count');
-  equals(postsExitCount, 0, 'posts exit count')
+  equals(postsExitCount, 0, 'posts exit count');
   equals(commentsEnterCount, 1, 'comments enter count');
   equals(commentsExitCount, 0, 'comments exit count');
   
   routeManager.set('location', 'posts/2/comments');
   
   equals(postsEnterCount, 1, 'posts enter count');
-  equals(postsExitCount, 0, 'posts exit count')
+  equals(postsExitCount, 0, 'posts exit count');
   equals(commentsEnterCount, 2, 'comments enter count');
   equals(commentsExitCount, 1, 'comments exit count');
 });
@@ -360,30 +360,30 @@ test("Should obey 404 state", function() {
   routeManager.set('location', '');
   
   equals(section1Count, 0, 'section1 count');
-  equals(homeCount, 1, 'home count')
+  equals(homeCount, 1, 'home count');
   equals(_404count, 0, '404 count');
   
   routeManager.set('location', 'section1');
   
   equals(section1Count, 1, 'section1 count');
-  equals(homeCount, 1, 'home count')
+  equals(homeCount, 1, 'home count');
   equals(_404count, 0, '404 count');
   
   routeManager.set('location', 'this-is-a-bad-route');
   
   equals(section1Count, 1, 'section1 count');
-  equals(homeCount, 1, 'home count')
+  equals(homeCount, 1, 'home count');
   equals(_404count, 1, '404 count');
   
   routeManager.set('location', 'section1');
   
   equals(section1Count, 2, 'section1 count');
-  equals(homeCount, 1, 'home count')
+  equals(homeCount, 1, 'home count');
   equals(_404count, 1, '404 count');
   
   routeManager.set('location', 'this-is-another/bad/route');
   
   equals(section1Count, 2, 'section1 count');
-  equals(homeCount, 1, 'home count')
+  equals(homeCount, 1, 'home count');
   equals(_404count, 2, '404 count');
 });
