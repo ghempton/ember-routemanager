@@ -9,14 +9,8 @@ module('Ember.RouteManager', {
   }
 });
 
-test('Setup', function() {
-  var routeManager = Ember.RouteManager.create();
-  equals(routeManager._didSetup, NO, 'Route manager should not have been setup yet');
-  routeManager.destroy();
-});
 
-
-test('Basic static path', function() {
+test('basic static paths', function() {
   
   var stateReached = false;
   
@@ -33,12 +27,37 @@ test('Basic static path', function() {
     })
   });
   
-  routeManager.set('location', 'posts/comments');
+  Ember.run(function() {
+    routeManager.set('location', 'posts/comments');
+  });
   
   ok(stateReached, 'The state should have been reached.');
 });
 
-test('Complex static paths', function() {
+test('setting window.location explicitly should trigger', function() {
+  
+  stop();
+  
+  var timer = setTimeout(function() {
+    ok(false, 'route change was not notified within 2 seconds');
+    start();
+  }, 2000);
+  
+  routeManager = Ember.RouteManager.create({
+    home: Ember.State.create({
+      path: 'home',
+      enter: function() {
+        start();
+        clearTimeout(timer);
+      }
+      })
+  });
+  
+  window.location.hash = 'home'
+  
+});
+
+test('complex static paths', function() {
   
   var stateReached = false;
   
@@ -61,7 +80,7 @@ test('Complex static paths', function() {
 });
 
 
-test('Parameter paths', function() {
+test('paths with parameters', function() {
   
   var commentId;
   var postId;
@@ -88,19 +107,17 @@ test('Parameter paths', function() {
   equals(commentId, 4, "The second param should have been set.");
 });
 
-test('Pathless states', function() {
+test('states without paths should automatically be entered', function() {
   var stateReached = false;
   
   routeManager = Ember.RouteManager.create({
     post: Ember.State.create({
       path: 'posts/:postId',
-      enter: function(stateManager) {
-        postId = stateManager.params.postId;
-      },
       admin: Ember.State.create({
         edit: Ember.State.create({
           path: 'edit',
           enter: function() {
+            this._super();
             stateReached = true;
           }
         })
@@ -111,10 +128,10 @@ test('Pathless states', function() {
   
   routeManager.set('location', 'posts/1/edit');
   
-  ok(stateReached, 'The state should have been reached.');
+  ok(stateReached, 'the state should have been reached.');
 });
 
-test("Wildcard paths", function() {
+test("wildcard paths", function() {
   var stateReached = false;
   
   routeManager = Ember.RouteManager.create({
@@ -135,7 +152,7 @@ test("Wildcard paths", function() {
   ok(stateReached, 'The state should have been reached.');
 });
 
-test("Regexp paths", function() {
+test("regexp paths", function() {
   var stateReached = false;
   
   routeManager = Ember.RouteManager.create({
@@ -156,7 +173,7 @@ test("Regexp paths", function() {
   ok(stateReached, 'The state should have been reached.');
 });
 
-test("Priority is obeyed", function() {
+test("state priorities are obeyed", function() {
   var stateReached = false;
   
   routeManager = Ember.RouteManager.create({
@@ -186,7 +203,7 @@ test("Priority is obeyed", function() {
   ok(stateReached, 'The state should have been reached.');
 });
 
-test("Route With Accept Logic", function() {
+test("routes obey the willAccept method", function() {
   var isAdmin = true;
   var stateReached = false;
   
@@ -222,7 +239,7 @@ test("Route With Accept Logic", function() {
   ok(!stateReached, 'The state should not have been reached.');
 });
 
-test("Route Ending on Pathless State", function() {
+test("routes will reach pathless leaf states", function() {
   var stateReached = false;
   
   routeManager = Ember.RouteManager.create({
@@ -243,7 +260,7 @@ test("Route Ending on Pathless State", function() {
   ok(stateReached, 'The state should have been reached.');
 });
 
-test('Route With Home State', function() {
+test('routes will enter a pathless home state', function() {
   
   var postsReached = false;
   var commentsReached = false;
@@ -287,7 +304,7 @@ test('Route With Home State', function() {
   equals(routeManager.get('currentState'), routeManager.getPath('posts.comments'), "The current state should be set correctly.");
 });
 
-test("Parameter-Only Changes", function() {
+test("a parameter only location change will re-trigger state transitions correctly", function() {
   postsEnterCount = 0;
   postsExitCount = 0;
   commentsEnterCount = 0;
@@ -333,7 +350,7 @@ test("Parameter-Only Changes", function() {
   equals(commentsExitCount, 1, 'comments exit count');
 });
 
-test("Should obey 404 state", function() {
+test("should obey the 404 state", function() {
   var section1Count = 0;
   var homeCount = 0;
   var _404count = 0;

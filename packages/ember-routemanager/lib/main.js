@@ -1,1 +1,1 @@
-require("ember-routemanager/core");
+require("ember-routemanager/route_manager");
