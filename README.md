@@ -8,11 +8,11 @@ Ember RouteManager is a coupling of native ember state managers with browser rou
 MyApp.routeManager = Ember.RouteManager.create({
 
   posts: Em.ViewState.create({
-    path: 'posts', // defines a static route
+    route: 'posts', // defines a static route
     view: MyApp.postsView,
     
     show: Em.State.create({
-      path: ':id', // defines a nested dynamic route
+      route: ':id', // defines a nested dynamic route
       enter: function(stateManager, transition) {
         this.super(stateManager, transition);
         var params = stateManager.get('params');
@@ -23,7 +23,7 @@ MyApp.routeManager = Ember.RouteManager.create({
   });
   
   projects: Em.ViewState.create({
-    path: 'projects',
+    route: 'projects',
     view: MyApp.projectsView
   });
 
