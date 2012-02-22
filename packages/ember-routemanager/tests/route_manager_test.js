@@ -16,10 +16,10 @@ test('basic static paths', function() {
   
   routeManager = Ember.RouteManager.create({
     posts: Ember.State.create({
-      path: 'posts',
+      route: 'posts',
       
       comments: Ember.State.create({
-        path: 'comments',
+        route: 'comments',
         enter: function() {
           stateReached = true;
         }
@@ -45,7 +45,7 @@ test('setting window.location explicitly should trigger', function() {
   
   routeManager = Ember.RouteManager.create({
     home: Ember.State.create({
-      path: 'home',
+      route: 'home',
       enter: function() {
         start();
         clearTimeout(timer);
@@ -63,10 +63,10 @@ test('complex static paths', function() {
   
   routeManager = Ember.RouteManager.create({
     posts: Ember.State.create({
-      path: 'posts',
+      route: 'posts',
       
       comments: Ember.State.create({
-        path: 'comments/all',
+        route: 'comments/all',
         enter: function() {
           stateReached = true;
         }
@@ -87,13 +87,13 @@ test('paths with parameters', function() {
   
   routeManager = Ember.RouteManager.create({
     post: Ember.State.create({
-      path: 'posts/:postId',
+      route: 'posts/:postId',
       enter: function(stateManager) {
         postId = stateManager.params.postId;
       },
       
       comment: Ember.State.create({
-        path: 'comments/:commentId',
+        route: 'comments/:commentId',
         enter: function(stateManager) {
           commentId = stateManager.params.commentId;
         }
@@ -112,10 +112,10 @@ test('states without paths should automatically be entered', function() {
   
   routeManager = Ember.RouteManager.create({
     post: Ember.State.create({
-      path: 'posts/:postId',
+      route: 'posts/:postId',
       admin: Ember.State.create({
         edit: Ember.State.create({
-          path: 'edit',
+          route: 'edit',
           enter: function() {
             this._super();
             stateReached = true;
@@ -136,10 +136,10 @@ test("wildcard paths", function() {
   
   routeManager = Ember.RouteManager.create({
     posts: Ember.State.create({
-      path: 'posts',
+      route: 'posts',
       
       comments: Ember.State.create({
-        path: '*',
+        route: '*',
         enter: function() {
           stateReached = true;
         }
@@ -157,10 +157,10 @@ test("regexp paths", function() {
   
   routeManager = Ember.RouteManager.create({
     posts: Ember.State.create({
-      path: /p.*/,
+      route: /p.*/,
       
       comments: Ember.State.create({
-        path: 'comments',
+        route: 'comments',
         enter: function() {
           stateReached = true;
         }
@@ -178,22 +178,22 @@ test("state priorities are obeyed", function() {
   
   routeManager = Ember.RouteManager.create({
     route1: Ember.State.create({
-      path: 'test',
+      route: 'test',
       priority: 1
     }),
     route2: Ember.State.create({
-      path: 'test',
+      route: 'test',
       priority: 3,
       enter: function() {
         stateReached = true;
       }
     }),
     route3: Ember.State.create({
-      path: 'test',
+      route: 'test',
       priority: -1
     }),
     route4: Ember.State.create({
-      path: 'test',
+      route: 'test',
       priority: 1
     })
   });
@@ -209,7 +209,7 @@ test("routes obey the willAccept method", function() {
   
   routeManager = Ember.RouteManager.create({
     post: Ember.State.create({
-      path: 'posts/:postId',
+      route: 'posts/:postId',
       enter: function(stateManager) {
         postId = stateManager.params.postId;
       },
@@ -218,7 +218,7 @@ test("routes obey the willAccept method", function() {
           return isAdmin;
         },
         edit: Ember.State.create({
-          path: 'edit',
+          route: 'edit',
           enter: function() {
             stateReached = true;
           }
@@ -244,7 +244,7 @@ test("routes will reach pathless leaf states", function() {
   
   routeManager = Ember.RouteManager.create({
     post: Ember.State.create({
-      path: 'posts',
+      route: 'posts',
       
       show: Ember.State.create({
         enter: function() {
@@ -268,13 +268,13 @@ test('routes will enter a pathless home state', function() {
   
   routeManager = Ember.RouteManager.create({
     posts: Ember.State.create({
-      path: 'posts',
+      route: 'posts',
       enter: function() {
         postsReached = true;
       },
       
       comments: Ember.State.create({
-        path: 'comments',
+        route: 'comments',
         enter: function() {
           commentsReached = true;
         }
@@ -312,7 +312,7 @@ test("a parameter only location change will re-trigger state transitions correct
   
   routeManager = Ember.RouteManager.create({
     posts: Ember.State.create({
-      path: 'posts',
+      route: 'posts',
       enter: function() {
         postsEnterCount++;
       },
@@ -320,9 +320,9 @@ test("a parameter only location change will re-trigger state transitions correct
         postsExitCount++;
       },
       post: Ember.State.create({
-        path: ':postId',
+        route: ':postId',
         comments: Ember.State.create({
-          path: 'comments',
+          route: 'comments',
           enter: function() {
             commentsEnterCount++;
           },
@@ -357,7 +357,7 @@ test("should obey the 404 state", function() {
   
   routeManager = Ember.RouteManager.create({
     section1: Ember.State.create({
-      path: 'section1',
+      route: 'section1',
       enter: function() {
         section1Count++;
       }

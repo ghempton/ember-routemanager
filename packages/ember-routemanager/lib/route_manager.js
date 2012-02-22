@@ -417,16 +417,16 @@ Ember.RouteManager = Ember.StateManager.extend({
     parts = Ember.copy(parts);
     params = Ember.copy(params);
     var dirty = false;
-    var path = get(state, 'path');
-    if(path) {
+    var route = get(state, 'route');
+    if(route) {
       var partDefinitions;
-      // path could be either a string or regex
-      if( typeof path == "string") {
-        partDefinitions = path.split('/');
-      } else if( path instanceof RegExp) {
-        partDefinitions = [path];
+      // route could be either a string or regex
+      if( typeof route == "string") {
+        partDefinitions = route.split('/');
+      } else if( route instanceof RegExp) {
+        partDefinitions = [route];
       } else {
-        ember_assert("path must be either a string or regexp", false);
+        ember_assert("route must be either a string or regexp", false);
       }
       
       for(var i = 0; i < partDefinitions.length; i++) {
