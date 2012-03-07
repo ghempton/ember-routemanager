@@ -238,9 +238,9 @@ Ember.RouteManager = Ember.StateManager.extend({
         } else {
           // we don't use a Ember.Timer because we don't want
           // a run loop to be triggered at each ping
-          var invokeHashChange = function() {
-            this.hashChange();
-            this._timerId = setTimeout(invokeHashChange, 100);
+          var _this = this, invokeHashChange = function() {
+            _this.hashChange();
+            _this._timerId = setTimeout(invokeHashChange, 100);
           };
 
           invokeHashChange();
