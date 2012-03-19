@@ -435,7 +435,7 @@ Ember.RouteManager = Ember.StateManager.extend({
         }
         var part = parts.shift();
         var partDefinition = partDefinitions[i];
-        var partParams = this._matchPart(partDefinition, part);
+        var partParams = this._matchPart(partDefinition, part, state);
         if(!partParams) {
           return false;
         }
@@ -465,7 +465,9 @@ Ember.RouteManager = Ember.StateManager.extend({
   /** @private
    Returns params if the part matches the partDefinition
    */
-  _matchPart: function(partDefinition, part) {
+  _matchPart: function(partDefinition, part, state) {
+    var params = {};
+
     // Handle string parts
     if( typeof partDefinition == "string") {
 
@@ -473,7 +475,6 @@ Ember.RouteManager = Ember.StateManager.extend({
         // 1. dynamic routes
         case ':':
           var name = partDefinition.slice(1, partDefinition.length);
-          var params = {};
           params[name] = part;
           return params;
 
@@ -491,8 +492,26 @@ Ember.RouteManager = Ember.StateManager.extend({
       return false;
     }
 
-    // Handle RegExp parts
-    return partDefinition.test(part) ? {} : false;
+    if (partDefinition instanceof RegExp) {
+      // JS doesn't support named capture groups in Regexes so instead
+      // we can define a list of 'captures' which maps to the matched groups
+      var captures = get(state, 'captures');
+      var matches = partDefinition.exec(part);
+
+      if (matches) {
+        if (captures) {
+          var len = captures.length, i;
+          for(i = 0; i < len; ++i) {
+            params[captures[i]] = matches[i+1];
+          }
+        }
+        return params;
+      } else {
+        return false;
+      }
+    }
+
+    return false;
   },
 
   /**

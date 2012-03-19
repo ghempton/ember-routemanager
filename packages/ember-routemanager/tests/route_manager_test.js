@@ -169,8 +169,37 @@ test("regexp paths", function() {
   });
   
   routeManager.set('location', 'posts/comments');
-  
+
   ok(stateReached, 'The state should have been reached.');
+});
+
+test("regexp paths with named captures", function() {
+  var stateReached = false;
+  var year, month, day;
+
+  routeManager = Ember.RouteManager.create({
+    posts: Ember.State.create({
+      route: 'posts',
+      archive: Ember.State.create({
+        route: /(\d{4})-(\d{2})-(\d{2})/,
+        captures: ['year', 'month', 'day'],
+        enter: function(stateManager) {
+          stateReached = true;
+          year = stateManager.params.year;
+          month = stateManager.params.month;
+          day = stateManager.params.day;
+        }
+      })
+    })
+  });
+
+  routeManager.set('location', 'posts/2012-08-21');
+
+  ok(stateReached, 'The state should have been reached.');
+
+  equals(year, '2012', "The first match param (year) should have been set.");
+  equals(month, '08', "The second match param (month) should have been set.");
+  equals(day, '21', "The first match param (day) should have been set.");
 });
 
 test("state priorities are obeyed", function() {
