@@ -203,9 +203,11 @@ test("state priorities are obeyed", function() {
   ok(stateReached, 'The state should have been reached.');
 });
 
-test("routes obey the willAccept method", function() {
+test("routes respect the enabled property", function() {
   var isAdmin = true;
-  var stateReached = false;
+  var editEnterCount = 0;
+  var showEnterCount = 0;
+  var altEnterCount = 0;
   
   routeManager = Ember.RouteManager.create({
     post: Ember.State.create({
@@ -213,14 +215,26 @@ test("routes obey the willAccept method", function() {
       enter: function(stateManager) {
         postId = stateManager.params.postId;
       },
+      show: Ember.State.create({
+        enabled: true,
+        enter: function() {
+          showEnterCount++;
+        }
+      }),
+      alt: Ember.State.create({
+        enabled: false,
+        enter: function() {
+          altEnterCount++;
+        }
+      }),
       admin: Ember.State.create({
-        willAccept: function() {
+        enabled: Ember.computed(function() {
           return isAdmin;
-        },
+        }).property(),
         edit: Ember.State.create({
           route: 'edit',
           enter: function() {
-            stateReached = true;
+            editEnterCount++;
           }
         })
       })
@@ -229,14 +243,27 @@ test("routes obey the willAccept method", function() {
   });
   
   routeManager.set('location', 'posts/1/edit');
-  ok(stateReached, 'The state should have been reached.');
+  equals(editEnterCount, 1, 'The edit state should have been entered once.');
+  equals(showEnterCount, 0, ' The show state should not have been entered.');
+  equals(altEnterCount, 0, 'The alt state should not have been entered.');
   
   routeManager.set('location', 'posts/1');
   isAdmin = false;
-  stateReached = false;
+  equals(editEnterCount, 1, 'The edit state should have been entered once.');
+  equals(showEnterCount, 1, ' The show state should have been entered once.');
+  equals(altEnterCount, 0, 'The alt state should not have been entered.');
   
   routeManager.set('location', 'posts/1/edit');
-  ok(!stateReached, 'The state should not have been reached.');
+  equals(editEnterCount, 1, 'The edit state should not have been entered again.');
+  equals(showEnterCount, 1, 'The show state should not have been entered again.');
+  equals(altEnterCount, 0, 'The alt state should not have been entered.');
+  
+  routeManager.post.show.enabled = false;
+  routeManager.post.alt.enabled = true;
+  routeManager.set('location', 'posts/1');
+  equals(editEnterCount, 1, 'The edit state should not have been entered again.');
+  equals(showEnterCount, 1, 'The show state should not have been entered again.');
+  equals(altEnterCount, 1, 'The alt state should have been entered.');
 });
 
 test("routes will reach pathless leaf states", function() {

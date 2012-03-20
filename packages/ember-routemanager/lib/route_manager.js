@@ -449,10 +449,9 @@ Ember.RouteManager = Ember.StateManager.extend({
       }
     }
 
-    if(Ember.typeOf(state.willAccept) == 'function') {
-      if(!state.willAccept(params)) {
-        return false;
-      }
+    var enabled = get(state, 'enabled');
+    if(enabled !== undefined && !enabled) {
+      return false;
     }
 
     return {
