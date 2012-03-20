@@ -361,10 +361,12 @@ test('routes will enter a pathless home state', function() {
 });
 
 test("a parameter only location change will re-trigger state transitions correctly", function() {
-  postsEnterCount = 0;
-  postsExitCount = 0;
-  commentsEnterCount = 0;
-  commentsExitCount = 0;
+  var postsEnterCount = 0;
+  var postsExitCount = 0;
+  var showEnterCount = 0;
+  var showExitCount = 0;
+  var commentsEnterCount = 0;
+  var commentsExitCount = 0;
   
   routeManager = Ember.RouteManager.create({
     posts: Ember.State.create({
@@ -377,6 +379,14 @@ test("a parameter only location change will re-trigger state transitions correct
       },
       post: Ember.State.create({
         route: ':postId',
+        show: Ember.State.create({
+          enter: function() {
+            showEnterCount++;
+          },
+          exit: function() {
+            showExitCount++;
+          }
+        }),
         comments: Ember.State.create({
           route: 'comments',
           enter: function() {
@@ -397,6 +407,8 @@ test("a parameter only location change will re-trigger state transitions correct
   equals(postsExitCount, 0, 'posts exit count');
   equals(commentsEnterCount, 1, 'comments enter count');
   equals(commentsExitCount, 0, 'comments exit count');
+  equals(showEnterCount, 0, 'show enter count');
+  equals(showExitCount, 0, 'show exit count');
   
   routeManager.set('location', 'posts/2/comments');
   
@@ -404,6 +416,28 @@ test("a parameter only location change will re-trigger state transitions correct
   equals(postsExitCount, 0, 'posts exit count');
   equals(commentsEnterCount, 2, 'comments enter count');
   equals(commentsExitCount, 1, 'comments exit count');
+  equals(showEnterCount, 0, 'show enter count');
+  equals(showExitCount, 0, 'show exit count');
+  
+  routeManager.set('location', 'posts/2');
+  
+  equals(routeManager.params.postId, 2, "post id parameter")
+  equals(postsEnterCount, 1, 'posts enter count');
+  equals(postsExitCount, 0, 'posts exit count');
+  equals(commentsEnterCount, 2, 'comments enter count');
+  equals(commentsExitCount, 2, 'comments exit count');
+  equals(showEnterCount, 1, 'show enter count');
+  equals(showExitCount, 0, 'show exit count');
+  
+  routeManager.set('location', 'posts/3');
+  
+  equals(routeManager.params.postId, 3, "post id parameter")
+  equals(postsEnterCount, 1, 'posts enter count');
+  equals(postsExitCount, 0, 'posts exit count');
+  equals(commentsEnterCount, 2, 'comments enter count');
+  equals(commentsExitCount, 2, 'comments exit count');
+  equals(showEnterCount, 2, 'show enter count');
+  equals(showExitCount, 1, 'show exit count');
 });
 
 test("should obey the 404 state", function() {
