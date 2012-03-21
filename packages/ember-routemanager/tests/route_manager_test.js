@@ -5,7 +5,10 @@ module('Ember.RouteManager', {
   },
   
   teardown: function() {
-    if(routeManager) routeManager.destroy();
+    if(routeManager) {
+      routeManager.destroy();
+      routeManager.set('location', null);
+    }
   }
 });
 
@@ -438,6 +441,25 @@ test("a parameter only location change will re-trigger state transitions correct
   equals(commentsExitCount, 2, 'comments exit count');
   equals(showEnterCount, 2, 'show enter count');
   equals(showExitCount, 1, 'show exit count');
+});
+
+test("path only parameter change on a root state should work", function() {
+  var enterCount = 0;
+  routeManager = Ember.RouteManager.create({
+    post: Ember.State.create({
+      route: 'posts/:postId',
+      enter: function(stateManager) {
+        enterCount++;
+      }
+    })
+  });
+  
+  routeManager.set('location', 'posts/1');
+  equals(enterCount, 1, 'enter count');
+  routeManager.set('location', 'posts/1');
+  equals(enterCount, 1, 'enter count');
+  routeManager.set('location', 'posts/2'); 
+  equals(enterCount, 2, 'enter count');
 });
 
 test("should obey the 404 state", function() {

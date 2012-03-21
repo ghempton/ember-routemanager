@@ -314,10 +314,15 @@ Ember.RouteManager = Ember.StateManager.extend({
         var cleanState = result.cleanStates.join('.');
         this.goToState(cleanState);
       }
+      
       // 2. We transition to the dirty state. This forces dirty
       // states to be transitioned.
       if(result.dirtyStates.length > 0) {
         var dirtyState = result.cleanStates.concat(result.dirtyStates).join('.');
+        // Special case for re-entering the root state on a parameter change
+        if(this.currentState && dirtyState === this.currentState.get('path')) {
+          this.goToState('__nullState');
+        }
         this.goToState(dirtyState);
       }
     } else {
@@ -558,6 +563,9 @@ Ember.RouteManager = Ember.StateManager.extend({
       }
     }
     routes._skipRoute = false;
-  }
+  },
+  
+  // This is used to re-enter a dirty root state
+  __nullState: Ember.State.create({enabled: false})
 
 });
