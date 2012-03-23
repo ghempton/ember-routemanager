@@ -56,6 +56,8 @@ test('setting window.location explicitly should trigger', function() {
       })
   });
   
+  routeManager.start();
+  
   window.location.hash = 'home'
   
 });

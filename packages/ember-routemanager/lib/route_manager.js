@@ -40,7 +40,7 @@ Ember.RouteManager = Ember.StateManager.extend({
 
    You will also need to make sure that baseURI is properly configured, as
    well as your server so that your routes are properly pointing to your
-   SproutCore application.
+   Ember application.
 
    @see http://dev.w3.org/html5/spec/history.html#the-history-interface
    @property
@@ -191,13 +191,12 @@ Ember.RouteManager = Ember.StateManager.extend({
   },
 
   /**
-   You usually don't need to call this method. It is done automatically after
-   the application has been initialized.
-
-   It registers for the hashchange event if available. If not, it creates a
+   Start this routemanager.
+   
+   Registers for the hashchange event if available. If not, it creates a
    timer that looks for location changes every 150ms.
    */
-  ping: function() {
+  start: function() {
     if(!this._didSetup) {
       this._didSetup = true;
       var state;
@@ -248,8 +247,11 @@ Ember.RouteManager = Ember.StateManager.extend({
       }
     }
   },
-
-  destroy: function() {
+  
+  /**
+   Stop this routemanager
+   */
+  stop: function() {
     if(this._didSetup) {
       if(get(this, 'wantsHistory') && supportsHistory) {
         jQuery(window).unbind('popstate', this.popState);
@@ -260,19 +262,13 @@ Ember.RouteManager = Ember.StateManager.extend({
           clearTimeout(this._timerId);
         }
       }
+      this._didSetup = false;
     }
-    this._super();
   },
 
-  /**
-   Ember.RouteManager currently automatically starts listening
-   for browser location changes when created.
-   */
-  init: function() {
+  destroy: function() {
+    this.stop();
     this._super();
-    if(!this._didSetup) {
-      this.ping();
-    }
   },
 
   /**
