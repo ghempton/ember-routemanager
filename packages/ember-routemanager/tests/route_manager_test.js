@@ -237,69 +237,6 @@ test("state priorities are obeyed", function() {
   ok(stateReached, 'The state should have been reached.');
 });
 
-test("routes respect the enabled property", function() {
-  var isAdmin = true;
-  var editEnterCount = 0;
-  var showEnterCount = 0;
-  var altEnterCount = 0;
-  
-  routeManager = Ember.RouteManager.create({
-    post: Ember.State.create({
-      route: 'posts/:postId',
-      enter: function(stateManager) {
-        postId = stateManager.params.postId;
-      },
-      show: Ember.State.create({
-        enabled: true,
-        enter: function() {
-          showEnterCount++;
-        }
-      }),
-      alt: Ember.State.create({
-        enabled: false,
-        enter: function() {
-          altEnterCount++;
-        }
-      }),
-      admin: Ember.State.create({
-        enabled: Ember.computed(function() {
-          return isAdmin;
-        }).property(),
-        edit: Ember.State.create({
-          route: 'edit',
-          enter: function() {
-            editEnterCount++;
-          }
-        })
-      })
-      
-    })
-  });
-  
-  routeManager.set('location', 'posts/1/edit');
-  equals(editEnterCount, 1, 'The edit state should have been entered once.');
-  equals(showEnterCount, 0, ' The show state should not have been entered.');
-  equals(altEnterCount, 0, 'The alt state should not have been entered.');
-  
-  routeManager.set('location', 'posts/1');
-  isAdmin = false;
-  equals(editEnterCount, 1, 'The edit state should have been entered once.');
-  equals(showEnterCount, 1, ' The show state should have been entered once.');
-  equals(altEnterCount, 0, 'The alt state should not have been entered.');
-  
-  routeManager.set('location', 'posts/1/edit');
-  equals(editEnterCount, 1, 'The edit state should not have been entered again.');
-  equals(showEnterCount, 1, 'The show state should not have been entered again.');
-  equals(altEnterCount, 0, 'The alt state should not have been entered.');
-  
-  routeManager.post.show.enabled = false;
-  routeManager.post.alt.enabled = true;
-  routeManager.set('location', 'posts/1');
-  equals(editEnterCount, 1, 'The edit state should not have been entered again.');
-  equals(showEnterCount, 1, 'The show state should not have been entered again.');
-  equals(altEnterCount, 1, 'The alt state should have been entered.');
-});
-
 test("routes will reach pathless leaf states", function() {
   var stateReached = false;
   
@@ -517,4 +454,105 @@ test("should obey the 404 state", function() {
   equals(section1Count, 2, 'section1 count');
   equals(homeCount, 1, 'home count');
   equals(_404count, 2, '404 count');
+});
+
+test("should obey synchronous validate methods", function() {
+  var isAdmin = true;
+  var editEnterCount = 0;
+  var showEnterCount = 0;
+  var altEnterCount = 0;
+  
+  var showEnabled = true;
+  var altEnabled = false;
+  
+  routeManager = Ember.RouteManager.create({
+    post: Ember.State.create({
+      route: 'posts/:postId',
+      enter: function(stateManager) {
+        postId = stateManager.params.postId;
+      },
+      show: Ember.State.create({
+        validate: function() { return showEnabled },
+        enter: function() {
+          showEnterCount++;
+        }
+      }),
+      alt: Ember.State.create({
+        validate: function() { return altEnabled },
+        enter: function() {
+          altEnterCount++;
+        }
+      }),
+      admin: Ember.State.create({
+        validate: function() { return isAdmin },
+        edit: Ember.State.create({
+          route: 'edit',
+          enter: function() {
+            editEnterCount++;
+          }
+        })
+      })
+      
+    })
+  });
+  
+  routeManager.set('location', 'posts/1/edit');
+  equals(editEnterCount, 1, 'The edit state should have been entered once.');
+  equals(showEnterCount, 0, ' The show state should not have been entered.');
+  equals(altEnterCount, 0, 'The alt state should not have been entered.');
+  
+  routeManager.set('location', 'posts/1');
+  isAdmin = false;
+  equals(editEnterCount, 1, 'The edit state should have been entered once.');
+  equals(showEnterCount, 1, ' The show state should have been entered once.');
+  equals(altEnterCount, 0, 'The alt state should not have been entered.');
+  
+  routeManager.set('location', 'posts/1/edit');
+  equals(editEnterCount, 1, 'The edit state should not have been entered again.');
+  equals(showEnterCount, 1, 'The show state should not have been entered again.');
+  equals(altEnterCount, 0, 'The alt state should not have been entered.');
+  
+  showEnabled = false;
+  altEnabled = true;
+  routeManager.set('location', 'posts/1');
+  equals(editEnterCount, 1, 'The edit state should not have been entered again.');
+  equals(showEnterCount, 1, 'The show state should not have been entered again.');
+  equals(altEnterCount, 1, 'The alt state should have been entered.');
+});
+
+test("should obey asynchronous validate methods", function() {
+  
+  stop();
+  
+  var homeEnterCount = 0;
+  var adminEnterCount = 0;
+  
+  routeManager = Ember.RouteManager.create({
+    home: Ember.State.create({
+      enter: function() { homeEnterCount++ }
+    }),
+    
+    admin: Ember.State.create({
+      route: 'admin',
+      enter: function() { adminEnterCount++ },
+      validate: function(routeManager, transition) {
+        transition.async();
+        setTimeout(function() {
+          start();
+          transition.resume(true);
+          equal(homeEnterCount, 1, 'home enter count');
+          equal(adminEnterCount, 1, 'admin enter count');
+        }, 100)
+      }
+    })
+  });
+  
+  routeManager.set('location', '');
+  
+  equal(homeEnterCount, 1, 'home enter count');
+  equal(adminEnterCount, 0, 'admin enter count');
+  
+  routeManager.set('location', 'admin');
+  
+  equal(adminEnterCount, 0, 'should be entered async');
 });

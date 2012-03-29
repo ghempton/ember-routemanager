@@ -62,19 +62,6 @@ Ember.RouteManager = Ember.StateManager.extend({
    The base URI used to resolve routes (which are relative URLs). Only used
    when usesHistory is equal to true.
 
-   The build tools automatically configure this value if you have the
-   html5_history option activated in the Buildfile:
-
-   config :my_app, :html5_history => true
-
-   Alternatively, it uses by default the value of the href attribute of the
-   <base> tag of the HTML document. For example:
-
-   <base href="http://domain.tld/my_app">
-
-   The value can also be customized before or during the exectution of the
-   main() method.
-
    @see http://www.w3.org/TR/html5/semantics.html#the-base-element
    @property
    @type {String}
@@ -278,7 +265,7 @@ Ember.RouteManager = Ember.StateManager.extend({
   locationDidChange: Ember.observer(function() {
     this.trigger();
   }, 'location'),
-
+  
   /**
    Triggers a route even if already in that route (does change the location, if
    it is not already changed, as well).
@@ -295,128 +282,166 @@ Ember.RouteManager = Ember.StateManager.extend({
     delete params.route;
     delete params.params;
 
-    var result = this.getState(location, params);
-    if(result) {
-      set(this, 'params', result.params);
-
-      // We switch states in two phases. The point of this is to handle
-      // parameter-only location changes. This will correspond to the same
-      // state path in the manager, but states with parts with changed
-      // parameters should be re-entered:
-
-      // 1. We go to the earliest clean state. This prevents
-      // unnecessary transitions.
-      if(result.cleanStates.length > 0) {
-        var cleanState = result.cleanStates.join('.');
-        this.goToState(cleanState);
-      }
-      
-      // 2. We transition to the dirty state. This forces dirty
-      // states to be transitioned.
-      if(result.dirtyStates.length > 0) {
-        var dirtyState = result.cleanStates.concat(result.dirtyStates).join('.');
-        // Special case for re-entering the root state on a parameter change
-        if(this.currentState && dirtyState === this.currentState.get('path')) {
-          this.goToState('__nullState');
+    this.getState(location, params, function(result) {
+      if(result) {
+        set(this, 'params', result.params);
+  
+        // We switch states in two phases. The point of this is to handle
+        // parameter-only location changes. This will correspond to the same
+        // state path in the manager, but states with parts with changed
+        // parameters should be re-entered:
+  
+        console.log('\n');
+        // 1. We go to the earliest clean state. This prevents
+        // unnecessary transitions.
+        if(result.cleanStates.length > 0) {
+          var cleanState = result.cleanStates.join('.');
+          this.goToState(cleanState);
+          console.log("clean: " + cleanState);
         }
-        this.goToState(dirtyState);
+        
+        // 2. We transition to the dirty state. This forces dirty
+        // states to be transitioned.
+        if(result.dirtyStates.length > 0) {
+          var dirtyState = result.cleanStates.concat(result.dirtyStates).join('.');
+          // Special case for re-entering the root state on a parameter change
+          if(this.currentState && dirtyState === this.currentState.get('path')) {
+            this.goToState('__nullState');
+            console.log("nullstate");
+          }
+          this.goToState(dirtyState);
+          console.log("dirty: " + dirtyState);
+        }
+      } else {
+        var states = get(this, 'states');
+        if(states && get(states, "404")) {
+          this.goToState("404");
+        }
       }
-    } else {
-      var states = get(this, 'states');
-      if(states && get(states, "404")) {
-        this.goToState("404");
-      }
-    }
+    });
+    
   },
 
-  getState: function(route, params) {
-    var parts = route.split('/');
-    parts = parts.filter(function(part) {
-      return part !== '';
-    });
-
-    return this._findState(parts, this, [], [], params, false);
+  getState: function(route, params, callback) {
+    return this._findState(route, this, [], [], params, callback);
   },
 
   /** @private
    Recursive helper that the state and the params if a match is found
    */
-  _findState: function(parts, state, cleanStates, dirtyStates, params) {
-    parts = Ember.copy(parts);
-
-    var hasChildren = false, name, states, childState;
-    // sort desc based on priority
-    states = [];
+  _findState: function(tail, state, cleanStates, dirtyStates, params, callback) {
+    var name, childStates, childState;
+    
+    // filter out non-state properties and sort on priority
+    childStates = [];
     for(name in state.states) {
       // 404 state is special and not matched
       childState = state.states[name];
       if(name == "404" || !Ember.State.detect(childState) && !( childState instanceof Ember.State)) {
         continue;
       }
-      states.push({
+      childStates.push({
         name: name,
         state: childState
       });
     }
-    states = states.sort(function(a, b) {
+    childStates = childStates.sort(function(a, b) {
       return (b.state.get('priority') || 0) - (a.state.get('priority') || 0);
     });
-
-    for(var i = 0; i < states.length; i++) {
-      name = states[i].name;
-      childState = states[i].state;
-      if(!( childState instanceof Ember.State)) {
-        continue;
-      }
-      hasChildren = true;
-
-      var result = this._matchState(parts, childState, params);
-      if(!result) {
-        continue;
-      }
-
-      var newParams = Ember.copy(params);
-      jQuery.extend(newParams, result.params);
-
-      var dirty = dirtyStates.length > 0 || result.dirty;
-      var newCleanStates = cleanStates;
-      var newDirtyStates = dirtyStates;
-      if(dirty) {
-        newDirtyStates = Ember.copy(newDirtyStates);
-        newDirtyStates.push(name);
-      } else {
-        newCleanStates = Ember.copy(newCleanStates);
-        newCleanStates.push(name);
-      }
-      result = this._findState(result.parts, childState, newCleanStates, newDirtyStates, newParams);
-      if(result) {
-        return result;
-      }
-    }
-
-    if(!hasChildren && parts.length === 0) {
-      return {
+    
+    // termination condition
+    if(childStates.length === 0 && tail.length === 0) {
+      callback.call(this, {
         state: state,
         params: params,
         cleanStates: cleanStates,
         dirtyStates: dirtyStates
-      };
+      });
+      return;
     }
-    return null;
+    
+    var self = this;
+    
+    // attempt to match all sub-state in parallel asynchronously and
+    // wait for them all to return
+    this.asyncParallelEach(childStates, function(state, callback) {
+      var name = state.name;
+      var childState = state.state;
+      
+      var result = this._matchState(childState, tail, function(result) {
+        if(!result) {
+          callback.call(this, false);
+          return;
+        }
+        
+        var newParams = Ember.copy(params);
+        jQuery.extend(newParams, result.params);
+  
+        var dirty = dirtyStates.length > 0 || result.dirty;
+        var newCleanStates = cleanStates;
+        var newDirtyStates = dirtyStates;
+        if(dirty) {
+          newDirtyStates = Ember.copy(newDirtyStates);
+          newDirtyStates.push(name);
+        } else {
+          newCleanStates = Ember.copy(newCleanStates);
+          newCleanStates.push(name);
+        }
+        self._findState(result.tail, childState, newCleanStates, newDirtyStates, newParams, callback);
+      });
+      
+    }, function(results) {
+      // loop over the results in order and return
+      // the first successful match
+      for(var i = 0; i < results.length; i++) {
+        var result = results[i];
+        if(result) {
+          callback.call(this, result);
+          return;
+        }
+      }
+      callback.call(this, false);
+    });
   },
-
+  
+  // Similar to asyncEach but executes in parallel
+  // and captures results for all items
+  asyncParallelEach: function(list, callback, doneCallback) {
+    var count = list.length;
+    var results = new Array(count);
+    if(count === 0) {
+      if (doneCallback) { doneCallback.call(this, results); }
+      return;
+    }
+    var resumed = 0;
+    var self = this;
+    for(var i = 0; i < count; i++) {
+      var async = false;
+      var item = list[i];
+      var index = i;
+      function itemCallback(result) {
+        results[index] = result;
+        resumed++;
+        if(resumed == count) {
+          if (doneCallback) { doneCallback.call(self, results); }
+        }
+      }
+      callback.call(this, item, itemCallback);
+    }
+  },
+  
   /** @private
-   Check if a state accepts the parts with the params
-
-   Returns the remaining parts as well as merged params if
-   the state accepts.
+   Check if a state accepts the remaining tail of the route
    
    Will also set the dirty flag if the route is the same but
    the parameters have changed
    */
-  _matchState: function(parts, state, params) {
-    parts = Ember.copy(parts);
-    params = Ember.copy(params);
+  _matchState: function(state, tail, callback) {
+    var params = {};
+    var parts = tail.split('/');
+    parts = parts.filter(function(part) {
+      return part !== '';
+    });
     var dirty = false;
     var route = get(state, 'route');
     if(route) {
@@ -432,16 +457,18 @@ Ember.RouteManager = Ember.StateManager.extend({
       
       for(var i = 0; i < partDefinitions.length; i++) {
         if(parts.length === 0) {
-          return false;
+          callback.call(this, false);
+          return;
         }
         var part = parts.shift();
         var partDefinition = partDefinitions[i];
-        var partParams = this._matchPart(partDefinition, part, state);
+        var partParams = this._matchPart(state, partDefinition, part);
         if(!partParams) {
-          return false;
+          callback.call(this, false);
+          return;
         }
 
-        var oldParams = this.get('params') || {};
+        var oldParams = state.get('params') || {};
         for(var param in partParams) {
           dirty = dirty || (oldParams[param] != partParams[param]);
         }
@@ -449,23 +476,34 @@ Ember.RouteManager = Ember.StateManager.extend({
         jQuery.extend(params, partParams);
       }
     }
-
-    var enabled = get(state, 'enabled');
-    if(enabled !== undefined && !enabled) {
-      return false;
-    }
-
-    return {
-      parts: parts,
+    
+    var result = {
+      tail: parts.join('/'),
       params: params,
       dirty: dirty
-    };
+    }
+    
+    // States can implement an async 'validate' method
+    if(typeof state.validate == 'function') {
+      var async = false;
+      var transition = {
+        async: function() { async = true; },
+        resume: function(valid) {
+          callback.call(this, valid && result);
+        }
+      };
+      
+      valid = state.validate(params, transition);
+      if(!async) transition.resume(valid);
+    } else {
+      callback.call(this, result);
+    }
   },
 
   /** @private
    Returns params if the part matches the partDefinition
    */
-  _matchPart: function(partDefinition, part, state) {
+  _matchPart: function(state, partDefinition, part) {
     var params = {};
 
     // Handle string parts
@@ -513,6 +551,7 @@ Ember.RouteManager = Ember.StateManager.extend({
 
     return false;
   },
+  
 
   /**
    Event handler for the hashchange event. Called automatically by the browser
