@@ -511,7 +511,7 @@ Ember.RouteManager = Ember.StateManager.extend({
         }
       };
       
-      valid = state.validate(params, transition);
+      valid = state.validate(this, params, transition);
       if(!async) transition.resume(valid);
     } else {
       callback.call(this, result);

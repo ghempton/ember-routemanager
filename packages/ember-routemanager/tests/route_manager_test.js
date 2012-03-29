@@ -535,7 +535,7 @@ test("should obey asynchronous validate methods", function() {
     admin: Ember.State.create({
       route: 'admin',
       enter: function() { adminEnterCount++ },
-      validate: function(routeManager, transition) {
+      validate: function(routeManager, params, transition) {
         transition.async();
         setTimeout(function() {
           start();
@@ -571,7 +571,7 @@ test("should be able to change location before async routing is finished", funct
     admin: Ember.State.create({
       route: 'admin',
       enter: function() { adminEnterCount++ },
-      validate: function(routeManager, transition) {
+      validate: function(routeManager, params, transition) {
         transition.async();
         setTimeout(function() {
           transition.resume(true);
