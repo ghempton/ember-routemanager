@@ -386,7 +386,7 @@ Ember.RouteManager = Ember.StateManager.extend({
       var name = state.name;
       var childState = state.state;
       
-      var result = this._matchState(childState, tail, function(result) {
+      var result = this._matchState(childState, tail, params, function(result) {
         if(!result) {
           callback.call(this, false);
           return;
@@ -454,8 +454,8 @@ Ember.RouteManager = Ember.StateManager.extend({
    Will also set the dirty flag if the route is the same but
    the parameters have changed
    */
-  _matchState: function(state, tail, callback) {
-    var params = {};
+  _matchState: function(state, tail, params, callback) {
+    params = Ember.copy(params);
     var parts = tail.split('/');
     parts = parts.filter(function(part) {
       return part !== '';
