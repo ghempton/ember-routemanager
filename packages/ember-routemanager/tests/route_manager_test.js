@@ -556,3 +556,44 @@ test("should obey asynchronous validate methods", function() {
   
   equal(adminEnterCount, 0, 'should be entered async');
 });
+
+test("should be able to change location before async routing is finished", function() {
+  stop();
+  
+  var homeEnterCount = 0;
+  var adminEnterCount = 0;
+  
+  routeManager = Ember.RouteManager.create({
+    home: Ember.State.create({
+      enter: function() { homeEnterCount++ }
+    }),
+    
+    admin: Ember.State.create({
+      route: 'admin',
+      enter: function() { adminEnterCount++ },
+      validate: function(routeManager, transition) {
+        transition.async();
+        setTimeout(function() {
+          transition.resume(true);
+        }, 100);
+      }
+    })
+  });
+  
+  routeManager.set('location', '');
+  
+  equal(homeEnterCount, 1, 'home enter count');
+  equal(adminEnterCount, 0, 'admin enter count');
+  
+  routeManager.set('location', 'admin');
+  routeManager.set('location', '');
+  
+  equal(homeEnterCount, 1, 'home enter count');
+  equal(adminEnterCount, 0, 'admin enter count');
+  
+  setTimeout(function() {
+    start();
+    equal(homeEnterCount, 1, 'home enter count');
+    equal(adminEnterCount, 0, 'admin enter count');
+  }, 200);
+});

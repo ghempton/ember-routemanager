@@ -266,6 +266,15 @@ Ember.RouteManager = Ember.StateManager.extend({
     this.trigger();
   }, 'location'),
   
+  // Used internally to determine when to stop an unfinished
+  // asynchronous routing operation
+  _triggerId: 0,
+  
+  /**
+   * Property indicating that an async routing operation is currently underway
+   */
+  routing: false,
+  
   /**
    Triggers a route even if already in that route (does change the location, if
    it is not already changed, as well).
@@ -274,6 +283,7 @@ Ember.RouteManager = Ember.StateManager.extend({
    "location" handle it (which ends up coming back to here).
    */
   trigger: function() {
+    var triggerId = ++this._triggerId;
     var location = get(this, 'location'), params, route;
     params = this._extractParametersAndRoute({
       route: location
@@ -281,8 +291,15 @@ Ember.RouteManager = Ember.StateManager.extend({
     location = params.route;
     delete params.route;
     delete params.params;
-
+    set('this', 'routing', true);
     this.getState(location, params, function(result) {
+      // if the triggerId has changed we know that another
+      // trigger call has been made and that this result
+      // has been made irrelevant
+      if(triggerId != this._triggerId) {
+        return;
+      }
+      
       if(result) {
         set(this, 'params', result.params);
   
@@ -318,6 +335,7 @@ Ember.RouteManager = Ember.StateManager.extend({
           this.goToState("404");
         }
       }
+      set(this, 'routing', false);
     });
     
   },
