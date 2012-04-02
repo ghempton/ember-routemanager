@@ -539,7 +539,7 @@ test("should obey asynchronous validate methods", function() {
         transition.async();
         setTimeout(function() {
           start();
-          transition.resume(true);
+          transition.ok();
           equal(homeEnterCount, 1, 'home enter count');
           equal(adminEnterCount, 1, 'admin enter count');
         }, 100)
@@ -574,7 +574,7 @@ test("should be able to change location before async routing is finished", funct
       validate: function(routeManager, params, transition) {
         transition.async();
         setTimeout(function() {
-          transition.resume(true);
+          transition.ok();
         }, 100);
       }
     })

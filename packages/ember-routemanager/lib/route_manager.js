@@ -308,13 +308,11 @@ Ember.RouteManager = Ember.StateManager.extend({
         // state path in the manager, but states with parts with changed
         // parameters should be re-entered:
   
-        console.log('\n');
         // 1. We go to the earliest clean state. This prevents
         // unnecessary transitions.
         if(result.cleanStates.length > 0) {
           var cleanState = result.cleanStates.join('.');
           this.goToState(cleanState);
-          console.log("clean: " + cleanState);
         }
         
         // 2. We transition to the dirty state. This forces dirty
@@ -324,10 +322,8 @@ Ember.RouteManager = Ember.StateManager.extend({
           // Special case for re-entering the root state on a parameter change
           if(this.currentState && dirtyState === this.currentState.get('path')) {
             this.goToState('__nullState');
-            console.log("nullstate");
           }
           this.goToState(dirtyState);
-          console.log("dirty: " + dirtyState);
         }
       } else {
         var states = get(this, 'states');
@@ -503,16 +499,22 @@ Ember.RouteManager = Ember.StateManager.extend({
     
     // States can implement an async 'validate' method
     if(typeof state.validate == 'function') {
-      var async = false;
+      var asyncCount = 0;
+      var returnCount = 0;
       var transition = {
-        async: function() { async = true; },
-        resume: function(valid) {
-          callback.call(this, valid && result);
+        async: function() { asyncCount++; },
+        ok: function() {
+          if(++returnCount >= asyncCount) {
+            callback.call(this, result);
+          }
+        },
+        fail: function() {
+          callback.call(this, false);
         }
       };
       
       valid = state.validate(this, params, transition);
-      if(!async) transition.resume(valid);
+      if(asyncCount === 0) callback.call(this, valid && result);
     } else {
       callback.call(this, result);
     }
