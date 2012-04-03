@@ -482,7 +482,7 @@ Ember.RouteManager = Ember.StateManager.extend({
           return;
         }
 
-        var oldParams = state.get('params') || {};
+        var oldParams = this.get('params') || {};
         for(var param in partParams) {
           dirty = dirty || (oldParams[param] != partParams[param]);
         }
