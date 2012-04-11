@@ -597,3 +597,27 @@ test("should be able to change location before async routing is finished", funct
     equal(adminEnterCount, 0, 'admin enter count');
   }, 200);
 });
+
+test("should support documentTitle property on states", function() {
+  routeManager = Ember.RouteManager.create({
+    documentTitle: 'Blog',
+    post: Ember.State.create({
+      route: 'post',
+      documentTitle: 'Cool Article'
+    }),
+    home: Ember.State.create({
+    })
+  });
+  
+  routeManager.set('location', '');
+  
+  equal(document.title, 'Blog', 'should use parents title if not set');
+  
+  routeManager.set('location', 'post');
+  
+  equal(document.title, 'Cool Article');
+  
+  routeManager.post.set('documentTitle', 'New Title');
+  
+  equal(document.title, 'New Title', 'document title should observe property changes');
+});

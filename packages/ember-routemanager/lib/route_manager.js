@@ -127,6 +127,10 @@ Ember.RouteManager = Ember.StateManager.extend({
 
     return params;
   },
+  
+  _convertToAbsolute: function(location) {
+    
+  },
 
   /**
    The current location hash. It is the part in the browser's location after
@@ -325,6 +329,8 @@ Ember.RouteManager = Ember.StateManager.extend({
           }
           this.goToState(dirtyState);
         }
+        
+        this.bindDocumentTitle();
       } else {
         var states = get(this, 'states');
         if(states && get(states, "404")) {
@@ -618,6 +624,30 @@ Ember.RouteManager = Ember.StateManager.extend({
       }
     }
     routes._skipRoute = false;
+  },
+  
+  /**
+   * Bind the browser title to the outermost state that has a documentTitle set
+   */
+  bindDocumentTitle: function() {
+    var state = get(this, 'currentState');
+    while(state && get(state, 'documentTitle') === undefined) {
+      state = state.parentState
+    }
+    var titleState = get(this, '_titleState');
+    if(titleState) {
+      Ember.removeObserver(titleState, 'documentTitle', this, 'updateDocumentTitle');
+    }
+    set(this, '_titleState', state);
+    if(state) {
+      Ember.addObserver(state, 'documentTitle', this, 'updateDocumentTitle');
+    }
+    this.updateDocumentTitle();
+  },
+  
+  updateDocumentTitle: function() {
+    var title = Ember.getPath(this, '_titleState.documentTitle')
+    document.title = title;
   },
   
   // This is used to re-enter a dirty root state
