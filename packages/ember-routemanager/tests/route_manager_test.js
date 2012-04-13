@@ -31,7 +31,7 @@ test('basic static paths', function() {
   });
   
   Ember.run(function() {
-    routeManager.set('location', 'posts/comments');
+    routeManager.set('location', '/posts/comments');
   });
   
   ok(stateReached, 'The state should have been reached.');
@@ -79,7 +79,7 @@ test('complex static paths', function() {
     })
   });
   
-  routeManager.set('location', 'posts/comments/all');
+  routeManager.set('location', '/posts/comments/all');
   
   ok(stateReached, 'The state should have been reached.');
 });
@@ -106,7 +106,7 @@ test('paths with parameters', function() {
     })
   });
   
-  routeManager.set('location', 'posts/1/comments/4');
+  routeManager.set('location', '/posts/1/comments/4');
   
   equals(postId, 1, "The first param should have been set.");
   equals(commentId, 4, "The second param should have been set.");
@@ -131,7 +131,7 @@ test('states without paths should automatically be entered', function() {
     })
   });
   
-  routeManager.set('location', 'posts/1/edit');
+  routeManager.set('location', '/posts/1/edit');
   
   ok(stateReached, 'the state should have been reached.');
 });
@@ -152,7 +152,7 @@ test("wildcard paths", function() {
     })
   });
   
-  routeManager.set('location', 'posts/comments');
+  routeManager.set('location', '/posts/comments');
   
   ok(stateReached, 'The state should have been reached.');
 });
@@ -173,7 +173,7 @@ test("regexp paths", function() {
     })
   });
   
-  routeManager.set('location', 'posts/comments');
+  routeManager.set('location', '/posts/comments');
 
   ok(stateReached, 'The state should have been reached.');
 });
@@ -198,7 +198,7 @@ test("regexp paths with named captures", function() {
     })
   });
 
-  routeManager.set('location', 'posts/2012-08-21');
+  routeManager.set('location', '/posts/2012-08-21');
 
   ok(stateReached, 'The state should have been reached.');
 
@@ -232,7 +232,7 @@ test("state priorities are obeyed", function() {
     })
   });
   
-  routeManager.set('location', 'test');
+  routeManager.set('location', '/test');
   
   ok(stateReached, 'The state should have been reached.');
 });
@@ -253,7 +253,7 @@ test("routes will reach pathless leaf states", function() {
     })
   });
   
-  routeManager.set('location', 'posts');
+  routeManager.set('location', '/posts');
   
   ok(stateReached, 'The state should have been reached.');
 });
@@ -286,15 +286,15 @@ test('routes will enter a pathless home state', function() {
     })
   });
   
-  routeManager.set('location', ''); 
+  routeManager.set('location', '/'); 
   ok(homeReached, 'The home state should have been reached.');
   
   homeReached = false;
   
-  routeManager.set('location', 'posts');
+  routeManager.set('location', '/posts');
   ok(!postsReached, 'Only leaf states can be routed to');
   
-  routeManager.set('location', 'posts/comments');
+  routeManager.set('location', '/posts/comments');
   
   ok(postsReached, 'Intermediary state should have been reached.');
   ok(commentsReached, 'Leaf state should have been reached');
@@ -343,7 +343,7 @@ test("a parameter only location change will re-trigger state transitions correct
     })
   });
   
-  routeManager.set('location', 'posts/1/comments');
+  routeManager.set('location', '/posts/1/comments');
   
   equals(postsEnterCount, 1, 'posts enter count');
   equals(postsExitCount, 0, 'posts exit count');
@@ -352,7 +352,7 @@ test("a parameter only location change will re-trigger state transitions correct
   equals(showEnterCount, 0, 'show enter count');
   equals(showExitCount, 0, 'show exit count');
   
-  routeManager.set('location', 'posts/2/comments');
+  routeManager.set('location', '/posts/2/comments');
   
   equals(postsEnterCount, 1, 'posts enter count');
   equals(postsExitCount, 0, 'posts exit count');
@@ -361,7 +361,7 @@ test("a parameter only location change will re-trigger state transitions correct
   equals(showEnterCount, 0, 'show enter count');
   equals(showExitCount, 0, 'show exit count');
   
-  routeManager.set('location', 'posts/2');
+  routeManager.set('location', '/posts/2');
   
   equals(routeManager.params.postId, 2, "post id parameter")
   equals(postsEnterCount, 1, 'posts enter count');
@@ -371,7 +371,7 @@ test("a parameter only location change will re-trigger state transitions correct
   equals(showEnterCount, 1, 'show enter count');
   equals(showExitCount, 0, 'show exit count');
   
-  routeManager.set('location', 'posts/3');
+  routeManager.set('location', '/posts/3');
   
   equals(routeManager.params.postId, 3, "post id parameter")
   equals(postsEnterCount, 1, 'posts enter count');
@@ -393,11 +393,11 @@ test("path only parameter change on a root state should work", function() {
     })
   });
   
-  routeManager.set('location', 'posts/1');
+  routeManager.set('location', '/posts/1');
   equals(enterCount, 1, 'enter count');
-  routeManager.set('location', 'posts/1');
+  routeManager.set('location', '/posts/1');
   equals(enterCount, 1, 'enter count');
-  routeManager.set('location', 'posts/2'); 
+  routeManager.set('location', '/posts/2'); 
   equals(enterCount, 2, 'enter count');
 });
 
@@ -425,31 +425,31 @@ test("should obey the 404 state", function() {
     })
   });
   
-  routeManager.set('location', '');
+  routeManager.set('location', '/');
   
   equals(section1Count, 0, 'section1 count');
   equals(homeCount, 1, 'home count');
   equals(_404count, 0, '404 count');
   
-  routeManager.set('location', 'section1');
+  routeManager.set('location', '/section1');
   
   equals(section1Count, 1, 'section1 count');
   equals(homeCount, 1, 'home count');
   equals(_404count, 0, '404 count');
   
-  routeManager.set('location', 'this-is-a-bad-route');
+  routeManager.set('location', '/this-is-a-bad-route');
   
   equals(section1Count, 1, 'section1 count');
   equals(homeCount, 1, 'home count');
   equals(_404count, 1, '404 count');
   
-  routeManager.set('location', 'section1');
+  routeManager.set('location', '/section1');
   
   equals(section1Count, 2, 'section1 count');
   equals(homeCount, 1, 'home count');
   equals(_404count, 1, '404 count');
   
-  routeManager.set('location', 'this-is-another/bad/route');
+  routeManager.set('location', '/this-is-another/bad/route');
   
   equals(section1Count, 2, 'section1 count');
   equals(homeCount, 1, 'home count');
@@ -496,25 +496,25 @@ test("should obey synchronous validate methods", function() {
     })
   });
   
-  routeManager.set('location', 'posts/1/edit');
+  routeManager.set('location', '/posts/1/edit');
   equals(editEnterCount, 1, 'The edit state should have been entered once.');
   equals(showEnterCount, 0, ' The show state should not have been entered.');
   equals(altEnterCount, 0, 'The alt state should not have been entered.');
   
-  routeManager.set('location', 'posts/1');
+  routeManager.set('location', '/posts/1');
   isAdmin = false;
   equals(editEnterCount, 1, 'The edit state should have been entered once.');
   equals(showEnterCount, 1, ' The show state should have been entered once.');
   equals(altEnterCount, 0, 'The alt state should not have been entered.');
   
-  routeManager.set('location', 'posts/1/edit');
+  routeManager.set('location', '/posts/1/edit');
   equals(editEnterCount, 1, 'The edit state should not have been entered again.');
   equals(showEnterCount, 1, 'The show state should not have been entered again.');
   equals(altEnterCount, 0, 'The alt state should not have been entered.');
   
   showEnabled = false;
   altEnabled = true;
-  routeManager.set('location', 'posts/1');
+  routeManager.set('location', '/posts/1');
   equals(editEnterCount, 1, 'The edit state should not have been entered again.');
   equals(showEnterCount, 1, 'The show state should not have been entered again.');
   equals(altEnterCount, 1, 'The alt state should have been entered.');
@@ -547,12 +547,12 @@ test("should obey asynchronous validate methods", function() {
     })
   });
   
-  routeManager.set('location', '');
+  routeManager.set('location', '/');
   
   equal(homeEnterCount, 1, 'home enter count');
   equal(adminEnterCount, 0, 'admin enter count');
   
-  routeManager.set('location', 'admin');
+  routeManager.set('location', '/admin');
   
   equal(adminEnterCount, 0, 'should be entered async');
 });
@@ -580,13 +580,13 @@ test("should be able to change location before async routing is finished", funct
     })
   });
   
-  routeManager.set('location', '');
+  routeManager.set('location', '/');
   
   equal(homeEnterCount, 1, 'home enter count');
   equal(adminEnterCount, 0, 'admin enter count');
   
-  routeManager.set('location', 'admin');
-  routeManager.set('location', '');
+  routeManager.set('location', '/admin');
+  routeManager.set('location', '/');
   
   equal(homeEnterCount, 1, 'home enter count');
   equal(adminEnterCount, 0, 'admin enter count');
@@ -608,16 +608,46 @@ test("should support documentTitle property on states", function() {
     home: Ember.State.create({
     })
   });
-  
-  routeManager.set('location', '');
-  
+  routeManager.set('location', '/');
   equal(document.title, 'Blog', 'should use parents title if not set');
-  
-  routeManager.set('location', 'post');
-  
+  routeManager.set('location', '/post');
   equal(document.title, 'Cool Article');
-  
   routeManager.post.set('documentTitle', 'New Title');
-  
   equal(document.title, 'New Title', 'document title should observe property changes');
+});
+
+test("should support relative locations", function() {
+  routeManager = Ember.RouteManager.create({
+    posts: Ember.State.create({
+      route: 'posts',
+      index: Ember.State.create(),
+      post: Ember.State.create({
+        route: ':postId'
+      })
+    }),
+    home: Ember.State.create({
+    })
+  });
+  routeManager.set('location', '/');
+  routeManager.set('location', '..');
+  equal(routeManager.currentState, routeManager.home, "parent path on the root state should still result in the root state");
+  
+  routeManager.set('location', '/posts/1/');
+  equal(routeManager.currentState, routeManager.posts.post, "absolute location");
+  
+  routeManager.set('location', '..');
+  equal(routeManager.currentState, routeManager.posts.index, "relative location: parent");
+  
+  routeManager.set('location', '/posts/1');
+  routeManager.set('location', '..');
+  equal(routeManager.currentState, routeManager.home, "relative location: parent no trailing slash");
+  
+  routeManager.set('location', '/posts/1');
+  routeManager.set('location', '2');
+  equal(routeManager.currentState, routeManager.posts.post, "relative location: sibling");
+  equal(routeManager.getPath('params.postId'), 2, "correct parameter");
+  
+  routeManager.set('location', '/posts/1/');
+  routeManager.set('location', '../..');
+  equal(routeManager.currentState, routeManager.home, "relative location: multiple parents");
 });

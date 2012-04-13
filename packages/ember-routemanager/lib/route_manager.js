@@ -127,10 +127,6 @@ Ember.RouteManager = Ember.StateManager.extend({
 
     return params;
   },
-  
-  _convertToAbsolute: function(location) {
-    
-  },
 
   /**
    The current location hash. It is the part in the browser's location after
@@ -156,6 +152,8 @@ Ember.RouteManager = Ember.StateManager.extend({
         crumbs = this._extractParametersAndRoute(value);
         value = crumbs.route + crumbs.params;
       }
+      
+      value = this._convertToAbsolute(value);
 
       if(!this._skipPush && (!Ember.empty(value) || (this._location && this._location !== value))) {
         encodedValue = encodeURI(value);
@@ -179,6 +177,34 @@ Ember.RouteManager = Ember.StateManager.extend({
   updateLocation: function(loc) {
     this._skipRoute = true;
     return this._extractLocation('location', loc);
+  },
+  
+  _convertToAbsolute: function(value) {
+    var current = this.get('_location');
+    if(value.charAt(0) == '/' || !current) {
+      return value; 
+    }
+    var parts = current.split('/');
+    parts.pop(); // skip the last part of the current url
+    parts = parts.concat(value.split('/'));
+    // handle '..' and '.
+    var absParts = [];
+    var skipCount = 0;
+    for(var i = parts.length - 1; i >= 0; i--) {
+      var part = parts[i];
+      if(part === "" || part === ".") {
+        absParts.unshift("/");
+      } else if(part === '..') {
+        skipCount++;
+      } else {
+        if(skipCount === 0) {
+          absParts.unshift(part);
+        } else {
+          skipCount--;
+        }
+      }
+    }
+    return absParts.join('/');
   },
 
   /**
