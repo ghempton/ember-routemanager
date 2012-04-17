@@ -456,7 +456,7 @@ test("should obey the 404 state", function() {
   equals(_404count, 2, '404 count');
 });
 
-test("should obey synchronous validate methods", function() {
+test("should obey synchronous load methods", function() {
   var isAdmin = true;
   var editEnterCount = 0;
   var showEnterCount = 0;
@@ -472,19 +472,19 @@ test("should obey synchronous validate methods", function() {
         postId = stateManager.params.postId;
       },
       show: Ember.State.create({
-        validate: function() { return showEnabled },
+        load: function() { return showEnabled },
         enter: function() {
           showEnterCount++;
         }
       }),
       alt: Ember.State.create({
-        validate: function() { return altEnabled },
+        load: function() { return altEnabled },
         enter: function() {
           altEnterCount++;
         }
       }),
       admin: Ember.State.create({
-        validate: function() { return isAdmin },
+        load: function() { return isAdmin },
         edit: Ember.State.create({
           route: 'edit',
           enter: function() {
@@ -520,7 +520,7 @@ test("should obey synchronous validate methods", function() {
   equals(altEnterCount, 1, 'The alt state should have been entered.');
 });
 
-test("should obey asynchronous validate methods", function() {
+test("should obey asynchronous load methods", function() {
   
   stop();
   
@@ -535,7 +535,7 @@ test("should obey asynchronous validate methods", function() {
     admin: Ember.State.create({
       route: 'admin',
       enter: function() { adminEnterCount++ },
-      validate: function(routeManager, params, transition) {
+      load: function(routeManager, params, transition) {
         transition.async();
         setTimeout(function() {
           start();
@@ -571,7 +571,7 @@ test("should be able to change location before async routing is finished", funct
     admin: Ember.State.create({
       route: 'admin',
       enter: function() { adminEnterCount++ },
-      validate: function(routeManager, params, transition) {
+      load: function(routeManager, params, transition) {
         transition.async();
         setTimeout(function() {
           transition.ok();

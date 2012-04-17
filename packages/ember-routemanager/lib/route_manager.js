@@ -529,8 +529,8 @@ Ember.RouteManager = Ember.StateManager.extend({
       dirty: dirty
     }
     
-    // States can implement an async 'validate' method
-    if(typeof state.validate == 'function') {
+    // States can implement an async 'load' method
+    if(typeof state.load == 'function') {
       var asyncCount = 0;
       var returnCount = 0;
       var transition = {
@@ -545,7 +545,7 @@ Ember.RouteManager = Ember.StateManager.extend({
         }
       };
       
-      valid = state.validate(this, params, transition);
+      valid = state.load(this, params, transition);
       if(asyncCount === 0) callback.call(this, valid && result);
     } else {
       callback.call(this, result);
