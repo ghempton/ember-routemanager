@@ -4,7 +4,7 @@ Ember RouteManager is a coupling of native ember state managers with browser rou
 
 ### Basic Example
 
-```
+```js
 MyApp = Em.Application.create();
 
 MyApp.postsView = Em.View.create({
@@ -44,7 +44,7 @@ MyApp.routeManager = Ember.RouteManager.create({
 
 With the above route manager defined, you can now change the browser location either directly or by using `routeManager.set('location', ...)`. For instance:
 
-```
+```js
 MyApp.routeManager.set('location', 'posts/25');
 ```
 
