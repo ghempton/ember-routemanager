@@ -7,7 +7,7 @@ module('Ember.RouteManager', {
   teardown: function() {
     if(routeManager) {
       routeManager.destroy();
-      routeManager.set('location', null);
+      window.location.hash = '';
     }
   }
 });
@@ -53,12 +53,12 @@ test('setting window.location explicitly should trigger', function() {
         start();
         clearTimeout(timer);
       }
-      })
+    })
   });
   
   routeManager.start();
   
-  window.location.hash = 'home'
+  window.location.hash = 'home';
   
 });
 
@@ -535,7 +535,7 @@ test("should obey asynchronous load methods", function() {
     admin: Ember.State.create({
       route: 'admin',
       enter: function() { adminEnterCount++ },
-      load: function(routeManager, params, transition) {
+      load: function(routeManager, params, context, transition) {
         transition.async();
         setTimeout(function() {
           start();
@@ -571,7 +571,7 @@ test("should be able to change location before async routing is finished", funct
     admin: Ember.State.create({
       route: 'admin',
       enter: function() { adminEnterCount++ },
-      load: function(routeManager, params, transition) {
+      load: function(routeManager, params, context, transition) {
         transition.async();
         setTimeout(function() {
           transition.ok();
@@ -650,4 +650,47 @@ test("should support relative locations", function() {
   routeManager.set('location', '/posts/1/');
   routeManager.set('location', '../..');
   equal(routeManager.currentState, routeManager.home, "relative location: multiple parents");
+});
+
+test("should be able to populate context", function() {
+  routeManager = Ember.RouteManager.create({
+    posts: Ember.State.create({
+      route: 'posts',
+      index: Ember.State.create(),
+      post: Ember.State.create({
+        route: ':postId',
+        load: function(routeManager, params, context, transition) {
+          context.name = "Post " + params.postId;
+          return true;
+        },
+        show: Ember.State.create(),
+        comments: Ember.State.create({
+          route: 'comments',
+          load: function(routeManager, params, context, transition) {
+            context.inComments = true;
+            equal(context.name, "Post " + params.postId, "parent context properties should be accessible")
+            return true;
+          },
+        })
+      })
+    }),
+    home: Ember.State.create({
+      load: function(routeManager, params, context, transition) {
+        context.inHome = true;
+        ok(!context.name, "previously set context properties should not be accessible")
+        return true;
+      },
+    })
+  });
+  
+  routeManager.set('location', '/');
+  routeManager.set('location', '/posts/1/comments');
+  
+  equal(routeManager.getPath('context.name'), "Post 1", "context property should be set");
+  
+  routeManager.set('location', '/posts/1/');
+  
+  ok(!routeManager.getPath('context.inComments'), "context property should be unset");
+  
+  routeManager.set('location', '/');
 });

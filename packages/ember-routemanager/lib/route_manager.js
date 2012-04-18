@@ -331,7 +331,9 @@ Ember.RouteManager = Ember.StateManager.extend({
       }
       
       if(result) {
+        
         set(this, 'params', result.params);
+        set(this, 'context', result.context);
   
         // We switch states in two phases. The point of this is to handle
         // parameter-only location changes. This will correspond to the same
@@ -369,13 +371,13 @@ Ember.RouteManager = Ember.StateManager.extend({
   },
 
   getState: function(route, params, callback) {
-    return this._findState(route, this, [], [], params, callback);
+    return this._findState(route, this, [], [], params, {}, callback);
   },
 
   /** @private
    Recursive helper that the state and the params if a match is found
    */
-  _findState: function(tail, state, cleanStates, dirtyStates, params, callback) {
+  _findState: function(tail, state, cleanStates, dirtyStates, params, context, callback) {
     var name, childStates, childState;
     
     // filter out non-state properties and sort on priority
@@ -400,6 +402,7 @@ Ember.RouteManager = Ember.StateManager.extend({
       callback.call(this, {
         state: state,
         params: params,
+        context: context,
         cleanStates: cleanStates,
         dirtyStates: dirtyStates
       });
@@ -414,15 +417,12 @@ Ember.RouteManager = Ember.StateManager.extend({
       var name = state.name;
       var childState = state.state;
       
-      var result = this._matchState(childState, tail, params, function(result) {
+      var result = this._matchState(childState, tail, params, context, function(result) {
         if(!result) {
           callback.call(this, false);
           return;
         }
         
-        var newParams = Ember.copy(params);
-        jQuery.extend(newParams, result.params);
-  
         var dirty = dirtyStates.length > 0 || result.dirty;
         var newCleanStates = cleanStates;
         var newDirtyStates = dirtyStates;
@@ -433,7 +433,7 @@ Ember.RouteManager = Ember.StateManager.extend({
           newCleanStates = Ember.copy(newCleanStates);
           newCleanStates.push(name);
         }
-        self._findState(result.tail, childState, newCleanStates, newDirtyStates, newParams, callback);
+        self._findState(result.tail, childState, newCleanStates, newDirtyStates, result.params, result.context, callback);
       });
       
     }, function(results) {
@@ -482,8 +482,9 @@ Ember.RouteManager = Ember.StateManager.extend({
    Will also set the dirty flag if the route is the same but
    the parameters have changed
    */
-  _matchState: function(state, tail, params, callback) {
+  _matchState: function(state, tail, params, context, callback) {
     params = Ember.copy(params);
+    context = Ember.copy(context);
     var parts = tail.split('/');
     parts = parts.filter(function(part) {
       return part !== '';
@@ -526,6 +527,7 @@ Ember.RouteManager = Ember.StateManager.extend({
     var result = {
       tail: parts.join('/'),
       params: params,
+      context: context,
       dirty: dirty
     }
     
@@ -545,7 +547,7 @@ Ember.RouteManager = Ember.StateManager.extend({
         }
       };
       
-      valid = state.load(this, params, transition);
+      valid = state.load(this, params, context, transition);
       if(asyncCount === 0) callback.call(this, valid && result);
     } else {
       callback.call(this, result);
