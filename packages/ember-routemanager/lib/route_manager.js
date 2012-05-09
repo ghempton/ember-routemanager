@@ -426,7 +426,7 @@ Ember.RouteManager = Ember.StateManager.extend({
       } else if( route instanceof RegExp) {
         partDefinitions = [route];
       } else {
-        ember_assert("route must be either a string or regexp", false);
+        Ember.assert("route must be either a string or regexp", false);
       }
       
       for(var i = 0; i < partDefinitions.length; i++) {
