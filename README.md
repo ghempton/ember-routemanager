@@ -8,11 +8,11 @@ Ember RouteManager is a coupling of native ember state managers with browser rou
 MyApp = Em.Application.create();
 
 MyApp.postsView = Em.View.create({
-  template:Em.Handlebars.compile("<h1>POSTS</h1><p>State: {{MyApp.routeManager.currentState.path}}</p>")
+  template: Em.Handlebars.compile("<h1>POSTS</h1><p>State: {{MyApp.routeManager.currentState.path}}</p>")
 });
 
 MyApp.projectsView = Em.View.create({
-  template:Em.Handlebars.compile("<h1>PROJECTS</h1><p>State: {{MyApp.routeManager.currentState.path}}</p>")
+  template: Em.Handlebars.compile("<h1>PROJECTS</h1><p>State: {{MyApp.routeManager.currentState.path}}</p>")
 });
 
 MyApp.routeManager = Ember.RouteManager.create({
