@@ -18,7 +18,7 @@ var supportsHashChange = ('onhashchange' in window) && (document.documentMode ==
  routeManager.set('location', 'notes/edit/4');
 
  Ember.RouteManager also supports HTML5 history, which uses a '/' instead of a
- '#' in the URLs, so that all your website's URLs are consistent.
+ '#!' in the URLs, so that all your website's URLs are consistent.
  */
 Ember.RouteManager = Ember.StateManager.extend({
 
@@ -31,7 +31,7 @@ Ember.RouteManager = Ember.StateManager.extend({
 
    By default it is false, so your URLs will look like:
 
-   http://domain.tld/my_app#notes/edit/4
+   http://domain.tld/my_app#!notes/edit/4
 
    If set to true and the browser supports pushState(), your URLs will look
    like:
@@ -143,7 +143,7 @@ Ember.RouteManager = Ember.StateManager.extend({
 
   /**
    The current location hash. It is the part in the browser's location after
-   the '#' mark.
+   the '#!' mark.
 
    @property
    @type {String}
@@ -170,12 +170,10 @@ Ember.RouteManager = Ember.StateManager.extend({
         encodedValue = encodeURI(value);
 
         if(this.usesHistory) {
-          if(encodedValue.length > 0) {
-            encodedValue = '/' + encodedValue;
-          }
+          encodedValue = '/' + encodedValue;
           window.history.pushState(null, null, get(this, 'baseURI') + encodedValue);
         } else if(encodedValue.length > 0 || window.location.hash.length > 0) {
-          window.location.hash = encodedValue;
+          window.location.hash = '!' + encodedValue;
         }
       }
 
@@ -199,17 +197,18 @@ Ember.RouteManager = Ember.StateManager.extend({
   start: function() {
     if(!this._didSetup) {
       this._didSetup = true;
-      var state;
+      var state = '';
 
       if(get(this, 'wantsHistory') && supportsHistory) {
         this.usesHistory = true;
 
         // Move any hash state to url state
-        // TODO: Make sure we have a hash before adding slash
-        state = window.location.hash.slice(1);
-        if(state.length > 0) {
-          state = '/' + state;
-          window.history.replaceState(null, null, get(this, 'baseURI') + state);
+        if(!Ember.empty(window.location.hash)){
+          state = window.location.hash.slice(1);
+          if(state.length > 0) {
+            state = '/' + state;
+            window.history.replaceState(null, null, get(this, 'baseURI') + state);
+          }
         }
 
         this.popState();
@@ -225,7 +224,7 @@ Ember.RouteManager = Ember.StateManager.extend({
           var loc = (base.charAt(0) === '/') ? document.location.pathname : document.location.href.replace(document.location.hash, '');
           state = loc.slice(base.length + 1);
           if(state.length > 0) {
-            window.location.href = base + '#' + state;
+            window.location.href = base + '#!' + state;
           }
         }
 
@@ -522,8 +521,8 @@ Ember.RouteManager = Ember.StateManager.extend({
     var loc = window.location.hash;
     var routes = this;
 
-    // Remove the '#' prefix
-    loc = (loc && loc.length > 0) ? loc.slice(1, loc.length) : '';
+    // Remove the '#!' prefix
+    loc = (loc && loc.length > 1) ? loc.slice(2, loc.length) : '';
 
     if(!jQuery.browser.mozilla) {
       // because of bug https://bugzilla.mozilla.org/show_bug.cgi?id=483304
