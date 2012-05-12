@@ -197,17 +197,18 @@ Ember.RouteManager = Ember.StateManager.extend({
   start: function() {
     if(!this._didSetup) {
       this._didSetup = true;
-      var state;
+      var state = '';
 
       if(get(this, 'wantsHistory') && supportsHistory) {
         this.usesHistory = true;
 
         // Move any hash state to url state
-        // TODO: Make sure we have a hash before adding slash
-        state = window.location.hash.slice(1);
-        if(state.length > 0) {
-          state = '/' + state;
-          window.history.replaceState(null, null, get(this, 'baseURI') + state);
+        if(!Ember.empty(window.location.hash)){
+          state = window.location.hash.slice(1);
+          if(state.length > 0) {
+            state = '/' + state;
+            window.history.replaceState(null, null, get(this, 'baseURI') + state);
+          }
         }
 
         this.popState();
