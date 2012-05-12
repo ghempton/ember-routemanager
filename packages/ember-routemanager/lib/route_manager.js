@@ -170,9 +170,7 @@ Ember.RouteManager = Ember.StateManager.extend({
         encodedValue = encodeURI(value);
 
         if(this.usesHistory) {
-          if(encodedValue.length > 0) {
-            encodedValue = '/' + encodedValue;
-          }
+          encodedValue = '/' + encodedValue;
           window.history.pushState(null, null, get(this, 'baseURI') + encodedValue);
         } else if(encodedValue.length > 0 || window.location.hash.length > 0) {
           window.location.hash = '!' + encodedValue;
