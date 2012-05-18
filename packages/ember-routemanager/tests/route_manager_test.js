@@ -40,6 +40,7 @@ test('basic static paths', function() {
 test('setting window.location explicitly should trigger', function() {
   
   stop();
+  expect(0);
   
   var timer = setTimeout(function() {
     ok(false, 'route change was not notified within 2 seconds');
@@ -108,8 +109,8 @@ test('paths with parameters', function() {
   
   routeManager.set('location', '/posts/1/comments/4');
   
-  equals(postId, 1, "The first param should have been set.");
-  equals(commentId, 4, "The second param should have been set.");
+  equal(postId, 1, "The first param should have been set.");
+  equal(commentId, 4, "The second param should have been set.");
 });
 
 test('states without paths should automatically be entered', function() {
@@ -202,9 +203,9 @@ test("regexp paths with named captures", function() {
 
   ok(stateReached, 'The state should have been reached.');
 
-  equals(year, '2012', "The first match param (year) should have been set.");
-  equals(month, '08', "The second match param (month) should have been set.");
-  equals(day, '21', "The first match param (day) should have been set.");
+  equal(year, '2012', "The first match param (year) should have been set.");
+  equal(month, '08', "The second match param (month) should have been set.");
+  equal(day, '21', "The first match param (day) should have been set.");
 });
 
 test("state priorities are obeyed", function() {
@@ -299,7 +300,7 @@ test('routes will enter a pathless home state', function() {
   ok(postsReached, 'Intermediary state should have been reached.');
   ok(commentsReached, 'Leaf state should have been reached');
   ok(!homeReached, 'The home state should not have been reached.');
-  equals(routeManager.get('currentState'), routeManager.getPath('posts.comments'), "The current state should be set correctly.");
+  equal(routeManager.get('currentState'), routeManager.getPath('posts.comments'), "The current state should be set correctly.");
 });
 
 test("a parameter only location change will re-trigger state transitions correctly", function() {
@@ -345,41 +346,41 @@ test("a parameter only location change will re-trigger state transitions correct
   
   routeManager.set('location', '/posts/1/comments');
   
-  equals(postsEnterCount, 1, 'posts enter count');
-  equals(postsExitCount, 0, 'posts exit count');
-  equals(commentsEnterCount, 1, 'comments enter count');
-  equals(commentsExitCount, 0, 'comments exit count');
-  equals(showEnterCount, 0, 'show enter count');
-  equals(showExitCount, 0, 'show exit count');
+  equal(postsEnterCount, 1, 'posts enter count');
+  equal(postsExitCount, 0, 'posts exit count');
+  equal(commentsEnterCount, 1, 'comments enter count');
+  equal(commentsExitCount, 0, 'comments exit count');
+  equal(showEnterCount, 0, 'show enter count');
+  equal(showExitCount, 0, 'show exit count');
   
   routeManager.set('location', '/posts/2/comments');
   
-  equals(postsEnterCount, 1, 'posts enter count');
-  equals(postsExitCount, 0, 'posts exit count');
-  equals(commentsEnterCount, 2, 'comments enter count');
-  equals(commentsExitCount, 1, 'comments exit count');
-  equals(showEnterCount, 0, 'show enter count');
-  equals(showExitCount, 0, 'show exit count');
+  equal(postsEnterCount, 1, 'posts enter count');
+  equal(postsExitCount, 0, 'posts exit count');
+  equal(commentsEnterCount, 2, 'comments enter count');
+  equal(commentsExitCount, 1, 'comments exit count');
+  equal(showEnterCount, 0, 'show enter count');
+  equal(showExitCount, 0, 'show exit count');
   
   routeManager.set('location', '/posts/2');
   
-  equals(routeManager.params.postId, 2, "post id parameter")
-  equals(postsEnterCount, 1, 'posts enter count');
-  equals(postsExitCount, 0, 'posts exit count');
-  equals(commentsEnterCount, 2, 'comments enter count');
-  equals(commentsExitCount, 2, 'comments exit count');
-  equals(showEnterCount, 1, 'show enter count');
-  equals(showExitCount, 0, 'show exit count');
+  equal(routeManager.params.postId, 2, "post id parameter");
+  equal(postsEnterCount, 1, 'posts enter count');
+  equal(postsExitCount, 0, 'posts exit count');
+  equal(commentsEnterCount, 2, 'comments enter count');
+  equal(commentsExitCount, 2, 'comments exit count');
+  equal(showEnterCount, 1, 'show enter count');
+  equal(showExitCount, 0, 'show exit count');
   
   routeManager.set('location', '/posts/3');
   
-  equals(routeManager.params.postId, 3, "post id parameter")
-  equals(postsEnterCount, 1, 'posts enter count');
-  equals(postsExitCount, 0, 'posts exit count');
-  equals(commentsEnterCount, 2, 'comments enter count');
-  equals(commentsExitCount, 2, 'comments exit count');
-  equals(showEnterCount, 2, 'show enter count');
-  equals(showExitCount, 1, 'show exit count');
+  equal(routeManager.params.postId, 3, "post id parameter");
+  equal(postsEnterCount, 1, 'posts enter count');
+  equal(postsExitCount, 0, 'posts exit count');
+  equal(commentsEnterCount, 2, 'comments enter count');
+  equal(commentsExitCount, 2, 'comments exit count');
+  equal(showEnterCount, 2, 'show enter count');
+  equal(showExitCount, 1, 'show exit count');
 });
 
 test("path only parameter change on a root state should work", function() {
@@ -394,11 +395,11 @@ test("path only parameter change on a root state should work", function() {
   });
   
   routeManager.set('location', '/posts/1');
-  equals(enterCount, 1, 'enter count');
+  equal(enterCount, 1, 'enter count');
   routeManager.set('location', '/posts/1');
-  equals(enterCount, 1, 'enter count');
+  equal(enterCount, 1, 'enter count');
   routeManager.set('location', '/posts/2'); 
-  equals(enterCount, 2, 'enter count');
+  equal(enterCount, 2, 'enter count');
 });
 
 test("should obey the 404 state", function() {
@@ -427,33 +428,33 @@ test("should obey the 404 state", function() {
   
   routeManager.set('location', '/');
   
-  equals(section1Count, 0, 'section1 count');
-  equals(homeCount, 1, 'home count');
-  equals(_404count, 0, '404 count');
+  equal(section1Count, 0, 'section1 count');
+  equal(homeCount, 1, 'home count');
+  equal(_404count, 0, '404 count');
   
   routeManager.set('location', '/section1');
   
-  equals(section1Count, 1, 'section1 count');
-  equals(homeCount, 1, 'home count');
-  equals(_404count, 0, '404 count');
+  equal(section1Count, 1, 'section1 count');
+  equal(homeCount, 1, 'home count');
+  equal(_404count, 0, '404 count');
   
   routeManager.set('location', '/this-is-a-bad-route');
   
-  equals(section1Count, 1, 'section1 count');
-  equals(homeCount, 1, 'home count');
-  equals(_404count, 1, '404 count');
+  equal(section1Count, 1, 'section1 count');
+  equal(homeCount, 1, 'home count');
+  equal(_404count, 1, '404 count');
   
   routeManager.set('location', '/section1');
   
-  equals(section1Count, 2, 'section1 count');
-  equals(homeCount, 1, 'home count');
-  equals(_404count, 1, '404 count');
+  equal(section1Count, 2, 'section1 count');
+  equal(homeCount, 1, 'home count');
+  equal(_404count, 1, '404 count');
   
   routeManager.set('location', '/this-is-another/bad/route');
   
-  equals(section1Count, 2, 'section1 count');
-  equals(homeCount, 1, 'home count');
-  equals(_404count, 2, '404 count');
+  equal(section1Count, 2, 'section1 count');
+  equal(homeCount, 1, 'home count');
+  equal(_404count, 2, '404 count');
 });
 
 test("should obey synchronous load methods", function() {
@@ -461,6 +462,7 @@ test("should obey synchronous load methods", function() {
   var editEnterCount = 0;
   var showEnterCount = 0;
   var altEnterCount = 0;
+  var postId;
   
   var showEnabled = true;
   var altEnabled = false;
@@ -472,19 +474,19 @@ test("should obey synchronous load methods", function() {
         postId = stateManager.params.postId;
       },
       show: Ember.State.create({
-        load: function() { return showEnabled },
+        load: function() { return showEnabled; },
         enter: function() {
           showEnterCount++;
         }
       }),
       alt: Ember.State.create({
-        load: function() { return altEnabled },
+        load: function() { return altEnabled; },
         enter: function() {
           altEnterCount++;
         }
       }),
       admin: Ember.State.create({
-        load: function() { return isAdmin },
+        load: function() { return isAdmin; },
         edit: Ember.State.create({
           route: 'edit',
           enter: function() {
@@ -497,27 +499,27 @@ test("should obey synchronous load methods", function() {
   });
   
   routeManager.set('location', '/posts/1/edit');
-  equals(editEnterCount, 1, 'The edit state should have been entered once.');
-  equals(showEnterCount, 0, ' The show state should not have been entered.');
-  equals(altEnterCount, 0, 'The alt state should not have been entered.');
+  equal(editEnterCount, 1, 'The edit state should have been entered once.');
+  equal(showEnterCount, 0, ' The show state should not have been entered.');
+  equal(altEnterCount, 0, 'The alt state should not have been entered.');
   
   routeManager.set('location', '/posts/1');
   isAdmin = false;
-  equals(editEnterCount, 1, 'The edit state should have been entered once.');
-  equals(showEnterCount, 1, ' The show state should have been entered once.');
-  equals(altEnterCount, 0, 'The alt state should not have been entered.');
+  equal(editEnterCount, 1, 'The edit state should have been entered once.');
+  equal(showEnterCount, 1, ' The show state should have been entered once.');
+  equal(altEnterCount, 0, 'The alt state should not have been entered.');
   
   routeManager.set('location', '/posts/1/edit');
-  equals(editEnterCount, 1, 'The edit state should not have been entered again.');
-  equals(showEnterCount, 1, 'The show state should not have been entered again.');
-  equals(altEnterCount, 0, 'The alt state should not have been entered.');
+  equal(editEnterCount, 1, 'The edit state should not have been entered again.');
+  equal(showEnterCount, 1, 'The show state should not have been entered again.');
+  equal(altEnterCount, 0, 'The alt state should not have been entered.');
   
   showEnabled = false;
   altEnabled = true;
   routeManager.set('location', '/posts/1');
-  equals(editEnterCount, 1, 'The edit state should not have been entered again.');
-  equals(showEnterCount, 1, 'The show state should not have been entered again.');
-  equals(altEnterCount, 1, 'The alt state should have been entered.');
+  equal(editEnterCount, 1, 'The edit state should not have been entered again.');
+  equal(showEnterCount, 1, 'The show state should not have been entered again.');
+  equal(altEnterCount, 1, 'The alt state should have been entered.');
 });
 
 test("should obey asynchronous load methods", function() {
@@ -529,20 +531,20 @@ test("should obey asynchronous load methods", function() {
   
   routeManager = Ember.RouteManager.create({
     home: Ember.State.create({
-      enter: function() { homeEnterCount++ }
+      enter: function() { homeEnterCount++; }
     }),
     
     admin: Ember.State.create({
       route: 'admin',
-      enter: function() { adminEnterCount++ },
-      load: function(routeManager, params, context, transition) {
+      enter: function() { adminEnterCount++; },
+      load: function(routeManager, params, transition, context) {
         transition.async();
         setTimeout(function() {
           start();
           transition.ok();
           equal(homeEnterCount, 1, 'home enter count');
           equal(adminEnterCount, 1, 'admin enter count');
-        }, 100)
+        }, 100);
       }
     })
   });
@@ -565,13 +567,13 @@ test("should be able to change location before async routing is finished", funct
   
   routeManager = Ember.RouteManager.create({
     home: Ember.State.create({
-      enter: function() { homeEnterCount++ }
+      enter: function() { homeEnterCount++; }
     }),
     
     admin: Ember.State.create({
       route: 'admin',
-      enter: function() { adminEnterCount++ },
-      load: function(routeManager, params, context, transition) {
+      enter: function() { adminEnterCount++; },
+      load: function(routeManager, params, transition, context) {
         transition.async();
         setTimeout(function() {
           transition.ok();
@@ -659,25 +661,25 @@ test("should be able to populate context", function() {
       index: Ember.State.create(),
       post: Ember.State.create({
         route: ':postId',
-        load: function(routeManager, params, context, transition) {
+        load: function(routeManager, params, transition, context) {
           context.name = "Post " + params.postId;
           return true;
         },
         show: Ember.State.create(),
         comments: Ember.State.create({
           route: 'comments',
-          load: function(routeManager, params, context, transition) {
+          load: function(routeManager, params, transition, context) {
             context.inComments = true;
-            equal(context.name, "Post " + params.postId, "parent context properties should be accessible")
+            equal(context.name, "Post " + params.postId, "parent context properties should be accessible");
             return true;
           },
         })
       })
     }),
     home: Ember.State.create({
-      load: function(routeManager, params, context, transition) {
+      load: function(routeManager, params, transition, context) {
         context.inHome = true;
-        ok(!context.name, "previously set context properties should not be accessible")
+        ok(!context.name, "previously set context properties should not be accessible");
         return true;
       },
     })
@@ -693,4 +695,77 @@ test("should be able to populate context", function() {
   ok(!routeManager.getPath('context.inComments'), "context property should be unset");
   
   routeManager.set('location', '/');
+});
+
+test("async states with route overlap", function() {
+  var showEnterCount = 0;
+  var showEnterCallback;
+  var editEnterCount = 0;
+  var editEnterCallback;
+  routeManager = Ember.RouteManager.create({
+    posts1: Ember.State.create({
+      route: 'posts/:postId',
+      show: Ember.State.create({
+        load: function(routeManager, params, transition, context) {
+          transition.async();
+          setTimeout(function() {
+            transition.ok();
+          }, 1);
+        },
+        enter: function() {
+          showEnterCount++;
+          if(showEnterCallback) {
+            showEnterCallback();
+          }
+        }
+      })
+    }),
+    posts2: Ember.State.create({
+      route: 'posts/:postId',
+      edit: Ember.State.create({
+        route: 'edit',
+        load: function(routeManager, params, transition, context) {
+          transition.async();
+          setTimeout(function() {
+            transition.ok();
+          }, 1);
+        },
+        enter: function() {
+          editEnterCount++;
+          if(editEnterCallback) {
+            editEnterCallback();
+          }
+        }
+      })
+    }),
+    home: Ember.State.create({
+    }),
+    "404":  Ember.State.create({
+    })
+  });
+
+  stop();
+
+  var timerId = setTimeout(function() {
+    start();
+  }, 100);
+
+  routeManager.set('location', '/posts/1');
+
+  showEnterCallback = function() {
+    equal(showEnterCount, 1, "show enter count is correct");
+    equal(editEnterCount, 0, "edit enter count is correct");
+
+    routeManager.set('location', '/posts/1/edit');
+
+    editEnterCallback = function() {
+      equal(showEnterCount, 1, "show enter count is correct");
+      equal(editEnterCount, 1, "edit enter count is correct");
+
+      start();
+
+      clearTimeout(timerId);
+    };
+  };
+
 });

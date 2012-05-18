@@ -181,7 +181,7 @@ Ember.RouteManager = Ember.StateManager.extend({
   
   _convertToAbsolute: function(value) {
     var current = this.get('_location');
-    if(value.charAt(0) == '/' || !current) {
+    if(value.charAt(0) === '/' || !current) {
       return value; 
     }
     var parts = current.split('/');
@@ -326,7 +326,7 @@ Ember.RouteManager = Ember.StateManager.extend({
       // if the triggerId has changed we know that another
       // trigger call has been made and that this result
       // has been made irrelevant
-      if(triggerId != this._triggerId) {
+      if(triggerId !== this._triggerId) {
         return;
       }
       
@@ -385,7 +385,7 @@ Ember.RouteManager = Ember.StateManager.extend({
     for(name in state.states) {
       // 404 state is special and not matched
       childState = state.states[name];
-      if(name == "404" || !Ember.State.detect(childState) && !( childState instanceof Ember.State)) {
+      if(name === "404" || !Ember.State.detect(childState) && !( childState instanceof Ember.State)) {
         continue;
       }
       childStates.push({
@@ -462,17 +462,16 @@ Ember.RouteManager = Ember.StateManager.extend({
     var resumed = 0;
     var self = this;
     for(var i = 0; i < count; i++) {
-      var async = false;
       var item = list[i];
-      var index = i;
-      function itemCallback(result) {
-        results[index] = result;
-        resumed++;
-        if(resumed == count) {
-          if (doneCallback) { doneCallback.call(self, results); }
-        }
-      }
-      callback.call(this, item, itemCallback);
+      callback.call(this, item, (function(i) {
+        return function(result) {
+          results[i] = result;
+          resumed++;
+          if(resumed === count) {
+            if (doneCallback) { doneCallback.call(self, results); }
+          }
+        };
+      })(i));
     }
   },
   
@@ -494,7 +493,7 @@ Ember.RouteManager = Ember.StateManager.extend({
     if(route) {
       var partDefinitions;
       // route could be either a string or regex
-      if( typeof route == "string") {
+      if( typeof route === "string") {
         partDefinitions = route.split('/');
       } else if( route instanceof RegExp) {
         partDefinitions = [route];
@@ -517,7 +516,7 @@ Ember.RouteManager = Ember.StateManager.extend({
 
         var oldParams = this.get('params') || {};
         for(var param in partParams) {
-          dirty = dirty || (oldParams[param] != partParams[param]);
+          dirty = dirty || (oldParams[param] !== partParams[param]);
         }
 
         jQuery.extend(params, partParams);
@@ -529,10 +528,10 @@ Ember.RouteManager = Ember.StateManager.extend({
       params: params,
       context: context,
       dirty: dirty
-    }
+    };
     
     // States can implement an async 'load' method
-    if(typeof state.load == 'function') {
+    if(typeof state.load === 'function') {
       var asyncCount = 0;
       var returnCount = 0;
       var transition = {
@@ -547,7 +546,7 @@ Ember.RouteManager = Ember.StateManager.extend({
         }
       };
       
-      valid = state.load(this, params, context, transition);
+      var valid = state.load(this, params, transition, context);
       if(asyncCount === 0) callback.call(this, valid && result);
     } else {
       callback.call(this, result);
@@ -561,7 +560,7 @@ Ember.RouteManager = Ember.StateManager.extend({
     var params = {};
 
     // Handle string parts
-    if( typeof partDefinition == "string") {
+    if( typeof partDefinition === "string") {
 
       switch (partDefinition.slice(0, 1)) {
         // 1. dynamic routes
@@ -576,7 +575,7 @@ Ember.RouteManager = Ember.StateManager.extend({
 
         // 3. static routes
         default:
-          if(partDefinition == part)
+          if(partDefinition === part)
             return {};
           break;
       }
@@ -660,7 +659,7 @@ Ember.RouteManager = Ember.StateManager.extend({
   bindDocumentTitle: function() {
     var state = get(this, 'currentState');
     while(state && get(state, 'documentTitle') === undefined) {
-      state = state.parentState
+      state = state.parentState;
     }
     var titleState = get(this, '_titleState');
     if(titleState) {
@@ -674,7 +673,7 @@ Ember.RouteManager = Ember.StateManager.extend({
   },
   
   updateDocumentTitle: function() {
-    var title = Ember.getPath(this, '_titleState.documentTitle')
+    var title = Ember.getPath(this, '_titleState.documentTitle');
     document.title = title;
   },
   

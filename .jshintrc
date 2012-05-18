@@ -22,7 +22,8 @@
         "strictEqual",
         "module",
         "expect",
-        "minispade"
+        "minispade",
+        "jQuery"
     ],
 
     "node" : false,
@@ -49,5 +50,6 @@
     "undef": true,
     "sub": true,
     "strict": false,
-    "white": false
+    "white": false,
+    "loopfunc": true
 }
