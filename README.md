@@ -1,4 +1,4 @@
-** Development has temporarily been suspended. [Please read this blog post](http://codebrief.com/2012/07/anatomy-of-an-ember-dot-js-app-part-i-redux-routing-and-outlets/). **
+**Development has temporarily been suspended. [Please read this blog post](http://codebrief.com/2012/07/anatomy-of-an-ember-dot-js-app-part-i-redux-routing-and-outlets/).**
 
 ## Ember RouteManager
 
