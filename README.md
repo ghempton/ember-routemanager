@@ -6,15 +6,15 @@ Ember RouteManager is a coupling of native ember state managers with browser rou
 
 ### Basic Example
 
-```
+```js
 MyApp = Em.Application.create();
 
 MyApp.postsView = Em.View.create({
-  template:Em.Handlebars.compile("<h1>POSTS</h1><p>State: {{MyApp.routeManager.currentState.path}}</p>")
+  template: Em.Handlebars.compile("<h1>POSTS</h1><p>State: {{MyApp.routeManager.currentState.path}}</p>")
 });
 
 MyApp.projectsView = Em.View.create({
-  template:Em.Handlebars.compile("<h1>PROJECTS</h1><p>State: {{MyApp.routeManager.currentState.path}}</p>")
+  template: Em.Handlebars.compile("<h1>PROJECTS</h1><p>State: {{MyApp.routeManager.currentState.path}}</p>")
 });
 
 MyApp.routeManager = Ember.RouteManager.create({
@@ -46,7 +46,7 @@ MyApp.routeManager = Ember.RouteManager.create({
 
 With the above route manager defined, you can now change the browser location either directly or by using `routeManager.set('location', ...)`. For instance:
 
-```
+```js
 MyApp.routeManager.set('location', 'posts/25');
 ```
 
