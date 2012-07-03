@@ -1,3 +1,5 @@
+** Development has temporarily been suspended. [Please read this blog post](http://codebrief.com/2012/07/anatomy-of-an-ember-dot-js-app-part-i-redux-routing-and-outlets/). **
+
 ## Ember RouteManager
 
 Ember RouteManager is a coupling of native ember state managers with browser routing mechanisms. In it's current form, it is a modified version of [SproutCore Routing](https://github.com/emberjs-addons/sproutcore-routing) which extends Ember.StateManager.
